@@ -1,5 +1,8 @@
+---
 BasedOnStyle: Google
 IndentWidth: '4'
 Language: Cpp
 PointerAlignment: Left
 TabWidth: '4'
+
+...
