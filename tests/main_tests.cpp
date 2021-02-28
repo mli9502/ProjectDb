@@ -1,3 +1,3 @@
 #include <gmock/gmock.h>
 
-TEST(MainTest, Dummy) { EXPECT_EQ(1, 0); }
+TEST(MainTest, Dummy) { EXPECT_EQ(2, 0); }
