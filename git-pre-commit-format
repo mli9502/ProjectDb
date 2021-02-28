@@ -322,7 +322,7 @@ fi
 
 echo
 echo "${b}The staged content is not formatted correctly.${n}"
-echo "The fix shown above can be applied automatically to the commit."
+echo "The fix shown above will be applied automatically to the commit."
 echo
 
 if $this_is_a_merge; then

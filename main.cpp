@@ -1,8 +1,7 @@
 #include <iostream>
 
 using namespace std;
-int main(void) {
+int main() {
     cout << "Starting database..." << endl;
-    int* t = new int;
     return 0;
 }
