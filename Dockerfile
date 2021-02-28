@@ -35,3 +35,4 @@ RUN make init_build
 
 # Run test by default when launch the image.
 CMD make run_tests
+

@@ -28,3 +28,4 @@ build_and_run_docker:
 clean:
 	@rm -rf cmake-build-*
 	@rm main main.debug main.release *.zip *.pdf *.o *.d $(OBJ_DIR)/*.o 2>/dev/null || true
+
