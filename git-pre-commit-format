@@ -322,7 +322,7 @@ fi
 
 echo
 echo "${b}The staged content is not formatted correctly.${n}"
-echo "The fix shown above can be applied automatically to the commit."
+echo "The fix shown above will be applied automatically to the commit."
 echo
 
 if $this_is_a_merge; then
@@ -341,71 +341,28 @@ else
     readonly bold_force=""
 fi
 
-echo "You can:"
-echo " ${bold_apply}[a]: Apply the fix${recommend_apply}${n}"
-echo " ${bold_force}[f]: Force and commit anyway${recommend_force}${n}"
-echo " [c]: Cancel the commit"
-echo " [?]: Show help"
-echo
+echo "Applying format fix..."
 
 readonly tty=${PRE_COMMIT_HOOK_TTY:-/dev/tty}
 
-while true; do
-    echo -n "What would you like to do? [a/f/c/?] "
-    read -r answer < "$tty"
-    case "$answer" in
+patch -p0 < "$patch" || \
+    error_exit \
+    $'\n' \
+    $'Cannot apply fix to local files.\n' \
+    $'Have you modified the file locally after starting the commit?'
+git apply -p0 --cached < "$patch" || \
+    error_exit \
+    $'\n' \
+    $'Cannot apply fix to git staged changes.\n' \
+    $'This may happen if you have some overlapping unstaged changes. To solve\n' \
+    $'you need to stage or reset changes manually.'
 
-        [aA] )
-            patch -p0 < "$patch" || \
-                error_exit \
-                $'\n' \
-                $'Cannot apply fix to local files.\n' \
-                $'Have you modified the file locally after starting the commit?'
-            git apply -p0 --cached < "$patch" || \
-                error_exit \
-                $'\n' \
-                $'Cannot apply fix to git staged changes.\n' \
-                $'This may happen if you have some overlapping unstaged changes. To solve\n' \
-                $'you need to stage or reset changes manually.'
+if $this_is_a_merge; then
+    echo
+    echo "Applied the fix to reformat the merge commit."
+    echo "You can always abort by quitting your editor with no commit message."
+    echo
+    echo -n "Press return to continue."
+    read -r < "$tty"
+fi
 
-            if $this_is_a_merge; then
-                echo
-                echo "Applied the fix to reformat the merge commit."
-                echo "You can always abort by quitting your editor with no commit message."
-                echo
-                echo -n "Press return to continue."
-                read -r < "$tty"
-            fi
-            ;;
-
-        [fF] )
-            echo
-            if ! $this_is_a_merge; then
-                echo "Will commit anyway!"
-                echo "You can always abort by quitting your editor with no commit message."
-                echo
-                echo -n "Press return to continue."
-                read -r < "$tty"
-            fi
-            exit 0
-            ;;
-
-        [cC] )
-            error_exit "Commit aborted as requested."
-            ;;
-
-        \? )
-            echo
-            show_help
-            echo
-            continue
-            ;;
-
-        * )
-            echo 'Invalid answer. Type "a", "f" or "c".'
-            echo
-            continue
-
-    esac
-    break
-done
