@@ -13,7 +13,7 @@ RUN update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 90 --slave /u
 RUN apt install -y cmake
 RUN apt install -y make
 
-# Install gtest
+# Install gtest.
 RUN apt install -y wget
 RUN apt install -y unzip
 RUN wget https://github.com/google/googletest/archive/release-1.10.0.zip && unzip release-1.10.0.zip && rm release-1.10.0.zip
@@ -28,4 +28,10 @@ RUN cd googletest-release-1.10.0 && \
     cp lib/libg* /usr/local/lib
 RUN rm -rf ./googletest-release-1.10.0
 
-ADD ./ /root/COMSW_4995
+COPY . .
+
+# Init build directory.
+RUN make init_build
+
+# Run test by default when launch the image.
+CMD make run_tests

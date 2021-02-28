@@ -3,6 +3,6 @@
 using namespace std;
 
 int main(void) {
-  cout << "Hello World!" << endl;
+  cout << "Starting database..." << endl;
   return 0;
 }
