@@ -4,7 +4,7 @@ A key-value storage engine library utilitzing `SSTable` and `Log-Structured Merg
 
 We would like to using modern C++ to implement a key-value storage engine library providing `get(<key>)`, `set(<key>, <value>)` and `delete(<key>)` apis. 
 
-The library can be used as the base of a distributed NoSQL database that require persistant datastore. 
+The library can be used as the base of a distributed NoSQL database that require persistent datastore. 
 
 The library is planned to include the following components:
 
@@ -24,14 +24,25 @@ Illustration of the workflow:
   1. The corresponding `Log` will be updated to reflect this operation.
   2. `<key>` and `<value>` will be inserted into `MemTable`.
   3. If `MemTable` reaches a pre-defined size:
-    a. Start an asyc job will be started to flush the `MemTable` to `SSTable` on disk. When flush is done:
+    a. Start an async job will be started to flush the `MemTable` to `SSTable` on disk. When flush is done:
       1. An `SSTableIndex` corresponding to the `SSTable` will be created.
       2. The corresponding `MemTable` is removed from the queue of `MemTable`s.
       3. The `Log` corresponding to this `MemTable` is removed from disk.
     b. A new `MemTable` will be insert into the queue to hold the incoming `set`.
 
 - `get(<key>)`
-  1. 
+  1. Check `MemTable`s in the queue to see if `<key>` exists. Return if it does.
+  2. Check `SSTableIndex` from latest to oldest, if `<key>` falls in the range of two entries from an `SSTableIndex`:
+    a. Load the block between these two entries from the corresponding `SSTable`.
+    b. Go through all the entries from the block to see if `<key>` exists.
+
+- `delete(<key>)`
+  1. Insert a `tombstone` entry into `MemTable` to represent that this key is marked for removal.
+
+- Async job to preform merging of `SSTable`s on disk to consolidate duplicate entries and removed entries
+  1. An async job will be started to merge the `SSTable`s on disk when the number of tables reaches a certain size. When merging of the tables are done:
+    a. Build index for the newly created `SSTable`.
+    b. Remove all the `SSTableIndex`s that corresponds to the removed `SSTables`. 
 
 ## How would you like to start
 
