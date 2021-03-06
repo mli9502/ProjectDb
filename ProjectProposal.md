@@ -9,13 +9,10 @@ The library can be used as the base of a distributed NoSQL database that require
 The library is planned to include the following components:
 
 1. `MemTable`: An in-memory map that temporarily holds the key-value pair that user want to set through `set` api, and also the first place `get` will check to retrieve the value.
-
-2. `SSTable (Sorted String Table)`: Represents the file that stores the data on disk. Once `MemTable` reaches a certain size, it is flushed to disk in the format defined by `SSTable`. 
-
-3. `SSTableIndex`: In-memory sparse index for a `SSTable`. This will be implemented to speed up `get` time since with index, we don't have to load the whole `SSTable` into memory to locate a record. 
-  
-    The `SSTableIndex` uses `<key>` as key, and the location on disk corresponding to this key as value. 
-
+2. `SSTable (Sorted String Table)`: Represents the file that stores the data on disk. Once `MemTable` reaches a certain size, it is flushed to disk in the format defined by `SSTable`.
+3. `SSTableIndex`: In-memory sparse index for a `SSTable`. This will be implemented to speed up `get` time since with index, we don't have to load the whole `SSTable` into memory to locate a record.
+    
+    The `SSTableIndex` uses `<key>` as key, and the location on disk corresponding to this key as value.
 4. `Log`: An append-only log for all the `set` and `delete` operations that are currently in `MemTable`. `Log` is used to make sure that nothing is lost if database crashes while there are still `MemTable` that's not flushed to disk. There will be one `Log` on disk corresponds to one `MemTable`, and once `MemTable` is flushed to disk, the corresponding `Log` will be deleted.
 
 Illustration of the workflow:
@@ -45,9 +42,21 @@ Illustration of the workflow:
     b. Remove all the `SSTableIndex`s that corresponds to the removed `SSTables`. 
 
 ## How would you like to start
+There are several things that could be done in parallel in the beginning:
+1. Implement the `MemTable` and `set(<key>, <value>)` operation to write to the latest `MemTable`.
+2. Implement the `SSTable` interface, define how the entries should be serialized to and deserialize from the file on disk.
+3. Research on the metrics that we can use to profile our implementation, and setup [leveldb](https://github.com/google/leveldb) to prepare for performance comparison.  
 
 ## Who will initially do what
 
 ## What will you eventually want to measure (quantify)
 
+
 ## Why do you think you can do it on this tight schedule
+
+## Reference
+
+1. [NoSQL Database Systems: A Survey and Decision Guidance](https://www.cs.utexas.edu/~rossbach/cs378h/papers/nosql-survey.pdf)
+2. [Bigtable: A Distributed Storage System for Structured Data](http://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf)
+3. Chapter 3 of [Designing Data-Intensive Applications](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
+4. [google/leveldb](https://github.com/google/leveldb)
