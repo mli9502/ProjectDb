@@ -1,7 +1,9 @@
 #include <iostream>
 
+#include "log.h"
+
 using namespace std;
 int main() {
-    cout << "Starting database..." << endl;
+    log::debug("Starting database...");
     return 0;
 }

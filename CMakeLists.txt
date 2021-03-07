@@ -11,6 +11,9 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 set(CMAKE_CXX_FLAGS_DEBUG "-g -Wall")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -Wall -O2")
 
+include_directories(utils)
+
+add_subdirectory(utils)
 add_subdirectory(tests)
 
 add_executable(${HW_NAME} main.cpp main.cpp)
