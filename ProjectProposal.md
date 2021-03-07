@@ -50,6 +50,7 @@ There are several things that could be done in parallel in the beginning:
     And also investigate additional features and optimizations that are done by other implementations the may contribute to performance difference.
 
 ## Who will initially do what
+TODO
 
 ## What will you eventually want to measure (quantify)
 We plan to profile this library implementation by `operations per second` for the following operations:
@@ -66,6 +67,7 @@ Other parameters that we could include in our profiling are:
 2. Disk space used for a given amount of data stored.
 
 ## Why do you think you can do it on this tight schedule
+TODO
 
 ## Reference
 1. [NoSQL Database Systems: A Survey and Decision Guidance](https://www.cs.utexas.edu/~rossbach/cs378h/papers/nosql-survey.pdf)
