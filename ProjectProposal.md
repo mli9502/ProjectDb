@@ -45,17 +45,29 @@ Illustration of the workflow:
 There are several things that could be done in parallel in the beginning:
 1. Implement the `MemTable` and `set(<key>, <value>)` operation to write to the latest `MemTable`.
 2. Implement the `SSTable` interface, define how the entries should be serialized to and deserialize from the file on disk.
-3. Research on the metrics that we can use to profile our implementation, and setup [leveldb](https://github.com/google/leveldb) to prepare for performance comparison.  
+3. Research on the metrics that we can use to profile our implementation, and setup [leveldb](https://github.com/google/leveldb) to prepare for performance comparison. 
+   
+    And also investigate additional features and optimizations that are done by other implementations the may contribute to performance difference.
 
 ## Who will initially do what
 
 ## What will you eventually want to measure (quantify)
+We plan to profile this library implementation by `operations per second` for the following operations:
+1. A series of `set(<key>, <value>)` operations.
+   a. With `<value>` with a small size.
+   b. With `<value>` with a large size.
+   c. With a mixture of small and large size `<value>`s.
+2. A series of `get(<key>)` operations with `<key>` sorted. (serial access)
+3. A series of `get(<key>)` operations with `<key>` in random order. (random access)
+4. A mixture of `set(<key>, <value>)`, `get(<key>)` and `delete(<key>)` operations.
 
+Other parameters that we could include in our profiling are:
+1. Memory used for a given amount of data stored. 
+2. Disk space used for a given amount of data stored.
 
 ## Why do you think you can do it on this tight schedule
 
 ## Reference
-
 1. [NoSQL Database Systems: A Survey and Decision Guidance](https://www.cs.utexas.edu/~rossbach/cs378h/papers/nosql-survey.pdf)
 2. [Bigtable: A Distributed Storage System for Structured Data](http://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf)
 3. Chapter 3 of [Designing Data-Intensive Applications](https://www.oreilly.com/library/view/designing-data-intensive-applications/9781491903063/)
