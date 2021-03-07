@@ -1,7 +1,7 @@
 BUILD := debug
 CMAKE_DIR := cmake-build-${BUILD}
 
-.PHONY: init_build main run_main tests run_tests build_and_run_docker clean
+.PHONY: init_build main run_main tests run_tests build_and_run_docker pdf_regen_all zip_files clean
 
 init_build:
 	-@rm -rf $(CMAKE_DIR)
@@ -24,6 +24,13 @@ run_tests:
 build_and_run_docker:
 	docker build -t cpp_project .
 	docker run cpp_project
+
+pdf_regen_all:
+	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o ml4643_MengwenLi_$${file%.*}.pdf; done
+
+zip_files:
+	-rm *.zip
+	zip ml4643_MengwenLi_hw5.zip utils/* main.cpp CMakeLists.txt Makefile ml4643_MengwenLi_hw5_report.pdf
 
 clean:
 	@rm -rf cmake-build-*
