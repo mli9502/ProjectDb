@@ -1,6 +1,5 @@
 #include <iostream>
 
-#include "exception.h"
 #include "log.h"
 
 using namespace std;
