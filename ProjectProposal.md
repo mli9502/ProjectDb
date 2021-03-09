@@ -101,6 +101,9 @@ Other parameters that we could include in our profiling are:
 ## Why do you think you can do it on this tight schedule
 
 TODO
+1. Memory used while the program runs for a given amount of data stored.
+
+2. Disk space used for a given amount of data stored.
 
 ## Reference
 
