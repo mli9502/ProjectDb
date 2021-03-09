@@ -20,10 +20,11 @@ template <typename T>
 concept Trivia = is_trivial<T>::value;
 
 template <typename T>
-concept Serializable = requires(T t) {
-    { t.toBlob() }
-    ->same_as<vector<char>>;
-    // TODO: @mli: Add fromBlob().
+concept Serializable = requires(T t, ostream& os, istream& is) {
+    { t.serialize(os) }
+    ->same_as<void>;
+    { t.deserialize(is) }
+    ->same_as<T&&>;
 };
 
 #endif  // MAIN_DB_CONCEPTS_H

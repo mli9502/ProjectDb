@@ -46,22 +46,4 @@ class TriviaWrapper {
     T m_t{};
 };
 
-// class Serializer {
-//   public:
-//    template <Serializable T>
-//    Serializer&& append(const T& obj) && {
-//        const vector<char>& blob = obj.toBlob();
-//        appendSize(blob.size());
-//        m_blob.insert(m_blob.end(), blob.begin(), blob.end());
-//        return move(*this);
-//    }
-//
-//    vector<char>&& getBlob() &&;
-//
-//   private:
-//    vector<char> m_blob;
-//
-//    void appendSize(int size);
-//};
-
 #endif  // MAIN_SERIALIZER_H
