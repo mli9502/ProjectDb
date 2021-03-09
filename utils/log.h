@@ -8,6 +8,7 @@
 #include <iostream>
 #include <sstream>
 
+#include "db_concepts.h"
 #include "exception.h"
 
 using namespace std;
@@ -15,11 +16,6 @@ using namespace std;
 namespace log {
 
 namespace impl {
-
-template <typename T>
-concept Loggable = requires(ostream& os, T t) {
-    os << t;
-};
 
 template <Loggable T>
 ostringstream& errorAndThrowImpl(ostringstream& oss, T&& arg) {
