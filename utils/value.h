@@ -14,15 +14,8 @@ class Value {
     enum class Type { STRING_VALUE, TOMBSTONE_VALUE };
 
     // Ctor.
-    Value();
+    Value();  // Constructs a TOMBSTONE_VALUE.
     explicit Value(string value);
-    ~Value() = default;
-    // Copy ctor and move ctor.
-    Value(const Value& value) = default;
-    Value(Value&& value) = default;
-    // Copy assignment and move assignment.
-    Value& operator=(const Value& value) = default;
-    Value& operator=(Value&& value) = default;
 
     [[nodiscard]] string value() const;
 

@@ -15,6 +15,10 @@ concept Loggable = requires(ostream& os, T t) {
     os << t;
 };
 
+// https://en.cppreference.com/w/cpp/types/is_trivial
+template <typename T>
+concept Trivia = is_trivial<T>::value;
+
 template <typename T>
 concept Serializable = requires(T t) {
     { t.toBlob() }

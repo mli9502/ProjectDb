@@ -5,14 +5,14 @@
 #ifndef MAIN_MEMTABLE_H
 #define MAIN_MEMTABLE_H
 
-#include <map>
-#include <vector>
-
-using namespace std;
-
-class MemTable {
-   private:
-    map<KeyT>
-};
+//#include <map>
+//#include <vector>
+//
+// using namespace std;
+//
+// class MemTable {
+//   private:
+//    map<KeyT>
+//};
 
 #endif  // MAIN_MEMTABLE_H
