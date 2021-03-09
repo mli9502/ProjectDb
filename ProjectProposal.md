@@ -1,3 +1,9 @@
+## Team members:
+
+- __Lieyang Chen__ (lc3548@columbia.edu)
+- __Mengwen Li__ (ml4643@columbia.edu)
+- __Shengtan Mao__ (sm4954@columbia.edu)
+
 ## What would you like to produce
 
 A key-value storage engine library utilitzing `SSTable` and `Log-Structured Merge-Tree (LSM-Tree)`.
@@ -73,7 +79,11 @@ There are several things that could be done in parallel in the beginning:
 
 ## Who will initially do what
 
-TODO
+- __Lieyang Chen (lc3548)__: Start implementing a program that can be used to test the library. Also researching other implementations of similar libraries to see for example what optimizations are done by those libraries.
+
+- __Mengwen Li (ml4643)__: Start implementing serialization and deserialization of `SSTable`.
+
+- __Shengtan Mao (sm4954)__: Start implementing `Memtable`, and also `TransactionLog`.
 
 ## What will you eventually want to measure (quantify)
 We plan to profile this library implementation by `operations per second` for the following operations:
@@ -100,10 +110,9 @@ Other parameters that we could include in our profiling are:
 
 ## Why do you think you can do it on this tight schedule
 
-TODO
-1. Memory used while the program runs for a given amount of data stored.
-
-2. Disk space used for a given amount of data stored.
+Conceptually, this project is relatively small in scope. It is a very basic database system. 
+We believe the main difficulty of this project will be implementing the asynchronous operations of the database. 
+This part is tricky to get right, but we think this is achievable with three people and also the new language support.
 
 ## Reference
 
