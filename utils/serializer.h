@@ -38,7 +38,7 @@ class TrivialWrapper {
         }
     }
 
-    T&& deserialize(istream& is) && {
+    T deserialize(istream& is) && {
         is.read(reinterpret_cast<char*>(&m_t), sizeof(T));
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
@@ -51,6 +51,10 @@ class TrivialWrapper {
    protected:
     T m_t{};
 };
+
+// TODO: @mli: Add concept and template for serialize of sequence container, and
+// associative container. Probably also need to cover string.
+
 }  // namespace projectdb
 
 #endif  // MAIN_SERIALIZER_H

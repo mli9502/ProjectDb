@@ -26,7 +26,7 @@ concept Serializable = requires(T t, ostream& os, istream& is) {
     { t.serialize(os) }
     ->same_as<void>;
     { move(t).deserialize(is) }
-    ->same_as<typename T::value_type&&>;
+    ->same_as<typename T::value_type>;
 };
 }  // namespace projectdb
 

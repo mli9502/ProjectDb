@@ -13,7 +13,11 @@ namespace projectdb {
 
 class Key {
    public:
+    using value_type = Key;
+    using size_type = string::size_type;
+
     // Ctor.
+    Key() = default;
     explicit Key(string key);
 
     ~Key() = default;
@@ -30,9 +34,19 @@ class Key {
 
     [[nodiscard]] string key() const;
 
+    void serialize(ostream& os) const;
+    Key deserialize(istream& is) &&;
+
+    friend ostream& operator<<(ostream& os, const Key& key);
+
    private:
     string m_key;
 };
+
+ostream& operator<<(ostream& os, const Key& key);
+
+// TODO: @mli: Define hashing for key.
+
 }  // namespace projectdb
 
 #endif  // MAIN_KEY_H

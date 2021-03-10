@@ -5,6 +5,16 @@
 #ifndef MAIN_MEMTABLE_H
 #define MAIN_MEMTABLE_H
 
+#include <map>
+
+using namespace std;
+
+namespace projectdb {
+
+class MemTable {};
+
+}  // namespace projectdb
+
 //#include <map>
 //#include <vector>
 //
