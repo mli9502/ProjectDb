@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace projectdb {
+
 class DbException : public exception {
    public:
     // Pass by value and move instead of pass by const&:
@@ -24,5 +26,6 @@ class DbException : public exception {
    private:
     const string m_msg;
 };
+}  // namespace projectdb
 
 #endif  // MAIN_EXCEPTION_H

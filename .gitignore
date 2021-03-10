@@ -4,3 +4,4 @@ cmake-*/
 *.orig
 *.rej
 *.pdf
+*.diff
