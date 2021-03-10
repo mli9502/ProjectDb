@@ -13,6 +13,8 @@
 
 using namespace std;
 
+namespace projectdb {
+
 namespace log {
 
 namespace impl {
@@ -80,5 +82,6 @@ void errorAndThrow(Ts&&... args) {
 }
 
 }  // namespace log
+}  // namespace projectdb
 
 #endif  // MAIN_LOG_H

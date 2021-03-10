@@ -9,16 +9,23 @@
 
 using namespace std;
 
+namespace projectdb {
+
 class Key {
    public:
     // Ctor.
     explicit Key(string key);
+
     ~Key() = default;
+
     // Copy ctor and move ctor.
     Key(const Key& key) = default;
+
     Key(Key&& key) = default;
+
     // Copy assignment and move assignment.
     Key& operator=(const Key& key) = default;
+
     Key& operator=(Key&& key) = default;
 
     [[nodiscard]] string key() const;
@@ -26,5 +33,6 @@ class Key {
    private:
     string m_key;
 };
+}  // namespace projectdb
 
 #endif  // MAIN_KEY_H

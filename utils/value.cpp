@@ -6,6 +6,8 @@
 
 #include "log.h"
 
+namespace projectdb {
+
 Value::Value() : m_type(Type::TOMBSTONE_VALUE) {}
 
 Value::Value(string value) : m_type(Type::STRING_VALUE), m_value(move(value)) {}
@@ -16,3 +18,4 @@ string Value::value() const {
     }
     return m_value;
 }
+}  // namespace projectdb

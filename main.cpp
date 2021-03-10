@@ -11,13 +11,13 @@ int main() {
 
     stringstream ss;
     try {
-        TriviaWrapper<int>(10).serialize(ss);
-        cout << "After deserialize: " << TriviaWrapper<int>().deserialize(ss)
+        TrivialWrapper<int>(10).serialize(ss);
+        cout << "After deserialize: " << TrivialWrapper<int>().deserialize(ss)
              << endl;
         ss.clear();
-        TriviaWrapper<double>(10.5).serialize(ss);
-        cout << "After deserialize: " << TriviaWrapper<double>().deserialize(ss)
-             << endl;
+        TrivialWrapper<double>(10.5).serialize(ss);
+        cout << "After deserialize: "
+             << TrivialWrapper<double>().deserialize(ss) << endl;
     } catch (const DbException& e) {
         cout << e.what() << endl;
     }

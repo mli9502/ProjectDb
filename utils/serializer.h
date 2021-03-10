@@ -18,11 +18,15 @@ using namespace std;
 // https://stackoverflow.com/questions/51230764/serialization-deserialization-of-a-vector-of-integers-in-c
 // https://isocpp.org/wiki/faq/serialization
 
-template <Trivia T>
-class TriviaWrapper {
+namespace projectdb {
+
+template <Trivial T>
+class TrivialWrapper {
    public:
-    TriviaWrapper() = default;
-    explicit TriviaWrapper(T t) : m_t(move(t)){};
+    using value_type = T;
+
+    TrivialWrapper() = default;
+    explicit TrivialWrapper(T t) : m_t(move(t)){};
 
     void serialize(ostream& os) const {
         array<char, sizeof(T)> buf;
@@ -30,20 +34,23 @@ class TriviaWrapper {
              reinterpret_cast<const char*>(&m_t) + sizeof(T), buf.begin());
         os.write(buf.data(), buf.size());
         if (!os) {
-            log::errorAndThrow("Failed to serialize trivia data: ", m_t);
+            log::errorAndThrow("Failed to serialize trivial data: ", m_t);
         }
     }
 
     T&& deserialize(istream& is) && {
         is.read(reinterpret_cast<char*>(&m_t), sizeof(T));
         if (!is) {
-            log::errorAndThrow("Failed to deserialize trivia data!");
+            log::errorAndThrow("Failed to deserialize trivial data!");
         }
         return move(m_t);
     }
 
-   private:
+    T get() const { return m_t; }
+
+   protected:
     T m_t{};
 };
+}  // namespace projectdb
 
 #endif  // MAIN_SERIALIZER_H

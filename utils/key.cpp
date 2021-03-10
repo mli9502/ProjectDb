@@ -4,6 +4,9 @@
 
 #include "key.h"
 
+namespace projectdb {
+
 Key::Key(string key) : m_key(move(key)) {}
 
 string Key::key() const { return m_key; }
+}  // namespace projectdb
