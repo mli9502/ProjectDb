@@ -81,6 +81,37 @@ void errorAndThrow(Ts&&... args) {
     throw DbException(err);
 }
 
+// Utility function to print some common types.
+template <Pair T>
+ostream& operator<<(ostream& os, const T& t) {
+    os << "{" << t.first << ", " << t.second << "}";
+    return os;
+}
+
+// Cannot just use SerializableContainer as template parameter because of it
+// matches string:
+// https://stackoverflow.com/questions/54912163/narrowing-down-a-c-concept-to-exclude-certain-types
+// https://stackoverflow.com/questions/13724766/how-to-write-a-streaming-operator-that-can-take-arbitary-containers-of-type
+// Didn't find a very clean way to overload operator<< for all containers...
+// TODO: @mli: Need to add operator<< for separate containers that are used in
+// the project...
+// TODO: @mli: Need to add tests for deserializing classes.
+
+// template <typename ValueT, template <typename...> typename ContainerT>
+// ostream& operator<<(ostream& os, const ContainerT<ValueT>& t) {
+//    os << "[";
+//    auto idx = 0;
+//    for(const auto cit = t.cbegin(); cit != t.cend(); cit ++) {
+//        os << *cit;
+//        if(idx != t.size() - 1) {
+//            os << ", ";
+//        }
+//        idx ++;
+//    }
+//    os << "]";
+//    return os;
+//}
+
 }  // namespace log
 }  // namespace projectdb
 

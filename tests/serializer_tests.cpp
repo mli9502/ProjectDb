@@ -49,52 +49,53 @@ ostream& operator<<(ostream& os, const TrivialStruct& t) {
 }
 }  // namespace
 
-using TrivialWrapperTypes =
-    ::testing::Types<TrivialWrapper<int>, TrivialWrapper<unsigned>,
-                     TrivialWrapper<double>, TrivialWrapper<bool>,
-                     TrivialWrapper<Value::Type>,
-                     TrivialWrapper<TrivialStruct>>;
+using SerializationWrapperTypes =
+    ::testing::Types<int, unsigned, double, bool, Value::Type, TrivialStruct>;
 
-template <Serializable T>
-class TrivialWrapperTestFixture : public ::testing::Test {
+template <typename T>
+class SerializationWrapperTestFixture : public ::testing::Test {
    public:
-    static T m_trivialWrapper;
+    static SerializationWrapper<T> m_serializationWrapper;
 };
 
-TYPED_TEST_SUITE(TrivialWrapperTestFixture, TrivialWrapperTypes);
+TYPED_TEST_SUITE(SerializationWrapperTestFixture, SerializationWrapperTypes);
 
 // https://github.com/google/googletest/blob/master/docs/advanced.md#typed-tests
 // http://www.cs.technion.ac.il/users/yechiel/c++-faq/nondependent-name-lookup-members.html
-TYPED_TEST(TrivialWrapperTestFixture, RoundtripTest) {
+TYPED_TEST(SerializationWrapperTestFixture, RoundtripTest) {
     stringstream ss;
+    // Make a copy of m_t because it might be moved latter.
+    auto expected =
+        SerializationWrapperTestFixture<TypeParam>::m_serializationWrapper.m_t;
     EXPECT_NO_THROW(
-        TrivialWrapperTestFixture<TypeParam>::m_trivialWrapper.serialize(ss));
-    typename TypeParam::value_type expected;
-    EXPECT_NO_THROW(expected = TypeParam().deserialize(ss));
-    EXPECT_EQ(expected,
-              TrivialWrapperTestFixture<TypeParam>::m_trivialWrapper.get());
+        move(SerializationWrapperTestFixture<TypeParam>::m_serializationWrapper)
+            .serialize(ss));
+    TypeParam deserialized;
+    EXPECT_NO_THROW(deserialized =
+                        SerializationWrapper<TypeParam>().deserialize(ss));
+    EXPECT_EQ(expected, deserialized);
 }
 
 // https://stackoverflow.com/questions/8507385/google-test-is-there-a-way-to-combine-a-test-which-is-both-type-parameterized-a
 template <>
-TrivialWrapper<int>
-    TrivialWrapperTestFixture<TrivialWrapper<int>>::m_trivialWrapper{-5};
+SerializationWrapper<int>
+    SerializationWrapperTestFixture<int>::m_serializationWrapper{-5};
 template <>
-TrivialWrapper<unsigned>
-    TrivialWrapperTestFixture<TrivialWrapper<unsigned>>::m_trivialWrapper{5};
+SerializationWrapper<unsigned>
+    SerializationWrapperTestFixture<unsigned>::m_serializationWrapper{5};
 template <>
-TrivialWrapper<double>
-    TrivialWrapperTestFixture<TrivialWrapper<double>>::m_trivialWrapper{5.5};
+SerializationWrapper<double>
+    SerializationWrapperTestFixture<double>::m_serializationWrapper{5.5};
 template <>
-TrivialWrapper<bool>
-    TrivialWrapperTestFixture<TrivialWrapper<bool>>::m_trivialWrapper{true};
+SerializationWrapper<bool>
+    SerializationWrapperTestFixture<bool>::m_serializationWrapper{true};
 template <>
-TrivialWrapper<Value::Type>
-    TrivialWrapperTestFixture<TrivialWrapper<Value::Type>>::m_trivialWrapper{
+SerializationWrapper<Value::Type>
+    SerializationWrapperTestFixture<Value::Type>::m_serializationWrapper{
         Value::Type::TOMBSTONE_VALUE};
 template <>
-TrivialWrapper<TrivialStruct>
-    TrivialWrapperTestFixture<TrivialWrapper<TrivialStruct>>::m_trivialWrapper{
+SerializationWrapper<TrivialStruct>
+    SerializationWrapperTestFixture<TrivialStruct>::m_serializationWrapper{
         TrivialStruct(1, 2)};
 
 }  // namespace projectdb

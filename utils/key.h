@@ -13,7 +13,6 @@ namespace projectdb {
 
 class Key {
    public:
-    using value_type = Key;
     using size_type = string::size_type;
 
     // Ctor.
@@ -34,7 +33,11 @@ class Key {
 
     [[nodiscard]] string key() const;
 
-    void serialize(ostream& os) const;
+    // TODO: @mli: serialize and deserialize should be make private, and
+    // SerializationWrapper should be friend class of this.
+    //              This is to make sure that no one accidentially call
+    //              serialize/deserialize accidentally.
+    void serialize(ostream& os) &&;
     Key deserialize(istream& is) &&;
 
     friend ostream& operator<<(ostream& os, const Key& key);
