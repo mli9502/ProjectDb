@@ -50,6 +50,8 @@ class Key {
     friend ostream& operator<<(ostream& os, const Key& key);
     friend bool operator==(const Key& lhs, const Key& rhs);
 
+    friend class std::less<Key>;
+
    private:
     string m_key;
 };
@@ -57,8 +59,21 @@ class Key {
 ostream& operator<<(ostream& os, const Key& key);
 bool operator==(const Key& lhs, const Key& rhs);
 
-// TODO: @mli: Define hashing for key.
-
 }  // namespace projectdb
+
+// Choose between operator< and specialize std::less:
+// https://stackoverflow.com/questions/1102392/how-can-i-use-stdmaps-with-user-defined-types-as-key
+namespace std {
+
+using namespace projectdb;
+
+template <>
+struct less<Key> {
+    bool operator()(const Key& lhs, const Key& rhs) const {
+        return lhs.m_key < rhs.m_key;
+    }
+};
+
+}  // namespace std
 
 #endif  // MAIN_KEY_H
