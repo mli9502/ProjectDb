@@ -4,6 +4,7 @@
 
 #include <gmock/gmock.h>
 
+#include "key.h"
 #include "serializer.h"
 #include "value.h"
 
@@ -50,7 +51,8 @@ ostream& operator<<(ostream& os, const TrivialStruct& t) {
 }  // namespace
 
 using SerializationWrapperTypes =
-    ::testing::Types<int, unsigned, double, bool, Value::Type, TrivialStruct>;
+    ::testing::Types<int, unsigned, double, bool, Value::Type, TrivialStruct,
+                     Key, Value>;
 
 template <typename T>
 class SerializationWrapperTestFixture : public ::testing::Test {
@@ -97,5 +99,19 @@ template <>
 SerializationWrapper<TrivialStruct>
     SerializationWrapperTestFixture<TrivialStruct>::m_serializationWrapper{
         TrivialStruct(1, 2)};
+
+/**
+ * TODO: @mli: How do we make it possible to have multiple values for Key for
+ * testing? Maybe we need another TYPED_TEST that takes vector<T> as types?
+ */
+template <>
+SerializationWrapper<Key>
+    SerializationWrapperTestFixture<Key>::m_serializationWrapper{
+        Key("Hello World Key!")};
+
+template <>
+SerializationWrapper<Value>
+    SerializationWrapperTestFixture<Value>::m_serializationWrapper{
+        Value("Hello World Value!")};
 
 }  // namespace projectdb

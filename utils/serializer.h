@@ -58,14 +58,14 @@ class SerializationWrapper<T> {
 
     void serialize(ostream& os) && {
         log::debug("Serializing Serializable data: ", m_t);
-        move(m_t).serialize(os);
+        move(m_t).serializeImpl(os);
         if (!os) {
             log::errorAndThrow("Failed to serialize Serializable data!");
         }
     }
 
     T deserialize(istream& is) && {
-        auto rtn = T().deserialize(is);
+        auto rtn = T().deserializeImpl(is);
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
         }
@@ -153,7 +153,7 @@ class SerializationWrapper<T> {
         log::debug("Serializing SerializableContainer data: ", m_t);
         SerializationWrapper<size_type>(m_t.size()).serialize(os);
         // Then, serialize each element in container.
-        for (auto it = m_t.begin(); it != m_t.end(); it++) {
+        for (auto it = m_t.cbegin(); it != m_t.cend(); it++) {
             SerializationWrapper<container_value_type>(move(*it)).serialize(os);
         }
     }

@@ -21,20 +21,20 @@ concept Loggable = requires(ostream& os, T t) {
 template <typename T>
 concept Trivial = is_trivial<T>::value;
 
-// TODO: @mli: Need to see if we can test private method.
-//              Also, note that SerializationWrapper is NOT Serializable. This
-//              is because it returns T::value_type on deserialization instead
-//              of T. This kindof make sense because SerializationWrapper should
-//              just be a wrapper. It is not actually a class that we want to
-//              serialize.
+/**
+ * NOTE: @mli:
+ * SerializationWrapper is NOT Serializable.
+ * This kind of make sense because SerializationWrapper should just be a
+ * wrapper. It is not actually a class that we want to serialize.
+ */
 template <typename T>
 concept Serializable = requires(T t, ostream& os, istream& is) {
     // T needs to be default constructable.
     { T() }
     ->same_as<T>;
-    { move(t).serialize(os) }
+    { move(t).serializeImpl(os) }
     ->same_as<void>;
-    { move(t).deserialize(is) }
+    { move(t).deserializeImpl(is) }
     ->same_as<T>;
 };
 

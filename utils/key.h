@@ -33,20 +33,29 @@ class Key {
 
     [[nodiscard]] string key() const;
 
-    // TODO: @mli: serialize and deserialize should be make private, and
-    // SerializationWrapper should be friend class of this.
-    //              This is to make sure that no one accidentially call
-    //              serialize/deserialize accidentally.
-    void serialize(ostream& os) &&;
-    Key deserialize(istream& is) &&;
+    /**
+     * NOTE: @mli:
+     * I want to make sure that these two methods can't be called directly.
+     * And serialization/deserialization must be done through
+     * SerializationWrapper due to the additional error checking. However, I
+     * didn't find a good way to handle this. Initially, I want to make
+     * serializeImpl and deserializeImpl private, and make SerializationWrapper
+     * a friend class. But, the use of Serializable concept requires method to
+     * be public. So, for now, just make the name <>Impl, hopefully indicate
+     * that these should not be called directly.
+     */
+    void serializeImpl(ostream& os) &&;
+    Key deserializeImpl(istream& is) &&;
 
     friend ostream& operator<<(ostream& os, const Key& key);
+    friend bool operator==(const Key& lhs, const Key& rhs);
 
    private:
     string m_key;
 };
 
 ostream& operator<<(ostream& os, const Key& key);
+bool operator==(const Key& lhs, const Key& rhs);
 
 // TODO: @mli: Define hashing for key.
 

@@ -5,6 +5,7 @@
 #include "value.h"
 
 #include "log.h"
+#include "serializer.h"
 
 namespace projectdb {
 
@@ -18,4 +19,35 @@ string Value::value() const {
     }
     return m_value;
 }
+
+void Value::serializeImpl(ostream& os) && {
+    SerializationWrapper<Value::Type>(move(m_type)).serialize(os);
+    SerializationWrapper<string>(move(m_value)).serialize(os);
+}
+
+Value Value::deserializeImpl(istream& is) && {
+    m_type = SerializationWrapper<Value::Type>().deserialize(is);
+    m_value = SerializationWrapper<string>().deserialize(is);
+    return move(*this);
+}
+
+ostream& operator<<(ostream& os, const Value::Type& type) {
+    os << static_cast<underlying_type<Value::Type>::type>(type);
+    return os;
+}
+
+/**
+ * TODO: @mli:
+ * Consider using formatter so the format can be typed more cleanly?
+ */
+ostream& operator<<(ostream& os, const Value& value) {
+    os << "{ m_type: [" << value.m_type << "], m_value: [" << value.m_value
+       << "] }";
+    return os;
+}
+
+bool operator==(const Value& lhs, const Value& rhs) {
+    return (lhs.m_type == rhs.m_type) && (lhs.m_value == rhs.m_value);
+}
+
 }  // namespace projectdb
