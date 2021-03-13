@@ -17,12 +17,20 @@ namespace projectdb {
 
 class MemTable {
    public:
-    // TODO: @mli: Add serializeImpl, deserializeImpl, operator<<, and
-    // operator== support.
+    using key_type = Key;
+    using mapped_type = vector<Value>;
+
+    // Serialization/deserialization will be used by sstable.
+    void serializeImpl(ostream& os) &&;
+    MemTable deserializeImpl(istream& is) &&;
+
     // TODO: @mli: Add get, set (When set is called, need to launch the async
     // job to convert memtable to sstable, and start serialization.)
     // TODO: @mli: Add size check? And maybe start adding callback to flush to
     // sstable?
+
+    friend ostream& operator<<(ostream& os, const MemTable& memTable);
+    friend bool operator==(const MemTable& lhs, const MemTable& rhs);
 
    private:
     /**
@@ -35,8 +43,13 @@ class MemTable {
      * as a result, we might think the value is still there if the set and
      * delete operation are being added into different tables.
      */
-    map<Key, vector<Value>> m_memtable;
+    map<key_type, mapped_type> m_memTable;
 };
+
+ostream& operator<<(ostream& os, const MemTable& memTable);
+bool operator==(const MemTable::mapped_type& lhs,
+                const MemTable::mapped_type& rhs);
+bool operator==(const MemTable& lhs, const MemTable& rhs);
 
 }  // namespace projectdb
 

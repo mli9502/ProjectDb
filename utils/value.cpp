@@ -21,7 +21,9 @@ string Value::value() const {
 }
 
 void Value::serializeImpl(ostream& os) && {
-    SerializationWrapper<Value::Type>(move(m_type)).serialize(os);
+    // NOTE: @mli: From clang-tidy: std::move of the expression of the
+    // trivially-copyable type 'projectdb::Value::Type' has no effect;
+    SerializationWrapper<Value::Type>(m_type).serialize(os);
     SerializationWrapper<string>(move(m_value)).serialize(os);
 }
 

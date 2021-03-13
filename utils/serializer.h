@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "db_concepts.h"
+#include "key.h"
 #include "log.h"
 
 using namespace std;
@@ -48,35 +49,6 @@ namespace projectdb {
 template <typename T>
 class SerializationWrapper;
 
-template <Serializable T>
-class SerializationWrapper<T> {
-   public:
-    using value_type = T;
-
-    SerializationWrapper() = default;
-    explicit SerializationWrapper(T t) : m_t(move(t)) {}
-
-    void serialize(ostream& os) && {
-        log::debug("Serializing Serializable data: ", m_t);
-        move(m_t).serializeImpl(os);
-        if (!os) {
-            log::errorAndThrow("Failed to serialize Serializable data!");
-        }
-    }
-
-    T deserialize(istream& is) && {
-        auto rtn = T().deserializeImpl(is);
-        if (!is) {
-            log::errorAndThrow("Failed to deserialize trivial data!");
-        }
-        log::debug("Successfully deserialized blob into Serializable data: ",
-                   rtn);
-        return rtn;
-    }
-
-    T m_t{};
-};
-
 template <Trivial T>
 class SerializationWrapper<T> {
    public:
@@ -109,7 +81,36 @@ class SerializationWrapper<T> {
     T m_t{};
 };
 
-template <Pair T>
+template <SerializableUserDefinedType T>
+class SerializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    SerializationWrapper() = default;
+    explicit SerializationWrapper(T t) : m_t(move(t)) {}
+
+    void serialize(ostream& os) && {
+        log::debug("Serializing Serializable data: ", m_t);
+        move(m_t).serializeImpl(os);
+        if (!os) {
+            log::errorAndThrow("Failed to serialize Serializable data!");
+        }
+    }
+
+    T deserialize(istream& is) && {
+        auto rtn = T().deserializeImpl(is);
+        if (!is) {
+            log::errorAndThrow("Failed to deserialize trivial data!");
+        }
+        log::debug("Successfully deserialized blob into Serializable data: ",
+                   rtn);
+        return rtn;
+    }
+
+    T m_t{};
+};
+
+template <SerializablePair T>
 class SerializationWrapper<T> {
    public:
     using value_type = T;
@@ -120,17 +121,36 @@ class SerializationWrapper<T> {
     void serialize(ostream& os) && {
         log::debug("Serializing Pair data: ", m_t);
         // Serialize .first and .second.
-        SerializationWrapper<typename T::first_type>(m_t.first).serialize(os);
-        SerializationWrapper<typename T::second_type>(m_t.second).serialize(os);
+        /**
+         * NOTE: @mli:
+         * We need remove_const for T::first_type.
+         * This is because Serializable concept requires serializeImpl and
+         * deserializeImpl to be able to be called on non-const types. However,
+         * the value_type defined for std::map is std::pair<const Key, T>.
+         * (https://en.cppreference.com/w/cpp/container/map) If we don't
+         * remove_const here, we will end up with error "invalid use of
+         * incomplete type ‘class projectdb::SerializationWrapper<const
+         * projectdb::Key>’" because the most generic version of
+         * SerializationWrapper<T> is not defined. It is also safe to cast away
+         * const in here.
+         */
+        SerializationWrapper<
+            typename remove_const<typename T::first_type>::type>(
+            move(m_t.first))
+            .serialize(os);
+        SerializationWrapper<typename T::second_type>(move(m_t.second))
+            .serialize(os);
     }
 
     T deserialize(istream& is) && {
         // Deserialize .first and .second.
-        T rtn;
-        rtn.first =
-            SerializationWrapper<typename T::frist_type>().deserialize(is);
-        rtn.second =
+        typename T::first_type first =
+            SerializationWrapper<
+                typename remove_const<typename T::first_type>::type>()
+                .deserialize(is);
+        typename T::second_type second =
             SerializationWrapper<typename T::second_type>().deserialize(is);
+        T rtn{first, second};
         log::debug("Successfully deserialized blob into Pair data: ", rtn);
         return rtn;
     }
@@ -153,7 +173,7 @@ class SerializationWrapper<T> {
         log::debug("Serializing SerializableContainer data: ", m_t);
         SerializationWrapper<size_type>(m_t.size()).serialize(os);
         // Then, serialize each element in container.
-        for (auto it = m_t.cbegin(); it != m_t.cend(); it++) {
+        for (auto it = m_t.begin(); it != m_t.end(); it++) {
             SerializationWrapper<container_value_type>(move(*it)).serialize(os);
         }
     }

@@ -5,6 +5,7 @@
 #include <gmock/gmock.h>
 
 #include "key.h"
+#include "memtable.h"
 #include "serializer.h"
 #include "value.h"
 
@@ -48,7 +49,47 @@ ostream& operator<<(ostream& os, const TrivialStruct& t) {
     os << "}";
     return os;
 }
+
+struct NotSerializableStruct {
+    vector<string> m_vec;
+};
+
 }  // namespace
+
+/**
+ * Tests to make sure that the following types are Serializable.
+ */
+using SerializableTypes = ::testing::Types<
+    int, Value::Type, TrivialStruct, Key, Value, MemTable, pair<int, string>,
+    pair<Key, Value>, pair<pair<Key, Value>, pair<int, string>>, vector<int>,
+    vector<Key>, vector<Value>, vector<MemTable>, map<int, string>,
+    map<Key, Value>, map<Key, vector<Value>>,
+    pair<map<Key, vector<Value>>, pair<map<int, string>, vector<Value>>>>;
+
+template <typename T>
+class SerializableConceptTestFixture : public ::testing::Test {};
+
+TYPED_TEST_SUITE(SerializableConceptTestFixture, SerializableTypes);
+
+TYPED_TEST(SerializableConceptTestFixture, SerializableTypesTest) {
+    EXPECT_TRUE(Serializable<TypeParam>);
+}
+
+/**
+ * Tests to make sure that the following types are NOT Serializable.
+ */
+using NotSerializableTypes =
+    ::testing::Types<NotSerializableStruct, pair<int, NotSerializableStruct>,
+                     vector<NotSerializableStruct>>;
+
+template <typename T>
+class NotSerializableConceptTestFixture : public ::testing::Test {};
+
+TYPED_TEST_SUITE(NotSerializableConceptTestFixture, NotSerializableTypes);
+
+TYPED_TEST(NotSerializableConceptTestFixture, NotSerializableTypesTest) {
+    EXPECT_FALSE(Serializable<TypeParam>);
+}
 
 using SerializationWrapperTypes =
     ::testing::Types<int, unsigned, double, bool, Value::Type, TrivialStruct,
