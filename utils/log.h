@@ -16,6 +16,7 @@ using namespace std;
 
 namespace projectdb {
 
+// https://stackoverflow.com/questions/8415890/c-chaining-of-the-operator-for-stdcout-like-usage
 namespace log {
 
 namespace impl {
@@ -36,14 +37,14 @@ ostringstream& errorAndThrowImpl(ostringstream& oss, T&& arg, Ts&&... args) {
 // matches string:
 // https://stackoverflow.com/questions/54912163/narrowing-down-a-c-concept-to-exclude-certain-types
 // https://stackoverflow.com/questions/13724766/how-to-write-a-streaming-operator-that-can-take-arbitary-containers-of-type
-template <SerializableContainer T>
-class LogWrapper {
+template <typename T>
+requires Serializable<T>&& Container<T> class LogWrapper {
    public:
     LogWrapper(const T& value) : m_value(value) {}
 
     ostream& print(ostream& os) const {
         os << "[";
-        auto idx = 0;
+        size_type idx = 0;
         for (auto it = m_value.cbegin(); it != m_value.cend(); it++) {
             os << *it;
             if (idx != m_value.size() - 1) {
@@ -57,19 +58,8 @@ class LogWrapper {
 
    private:
     const T& m_value;
+    using size_type = decltype(m_value.size());
 };
-
-// Utility function to print some common types.
-template <Pair T>
-ostream& operator<<(ostream& os, const T& t) {
-    os << "{" << t.first << ", " << t.second << "}";
-    return os;
-}
-
-template <Loggable T, Loggable U>
-ostream& operator<<(ostream& os, const map<T, U>& value) {
-    return LogWrapper<map<T, U>>(value).print(os);
-}
 
 }  // namespace impl
 
@@ -122,6 +112,25 @@ void errorAndThrow(Ts&&... args) {
 }
 
 }  // namespace log
+
+using namespace log::impl;
+// Utility function to print some common types.
+template <Pair T>
+ostream& operator<<(ostream& os, const T& t) {
+    os << "{" << t.first << ", " << t.second << "}";
+    return os;
+}
+
+template <Loggable T>
+ostream& operator<<(ostream& os, const vector<T>& value) {
+    return LogWrapper<vector<T>>(value).print(os);
+}
+
+template <Loggable T, Loggable U>
+ostream& operator<<(ostream& os, const map<T, U>& value) {
+    return LogWrapper<map<T, U>>(value).print(os);
+}
+
 }  // namespace projectdb
 
 #endif  // MAIN_LOG_H
