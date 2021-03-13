@@ -20,15 +20,73 @@ using namespace std;
 
 namespace projectdb {
 
-template <Trivial T>
-class TrivialWrapper {
+/**
+ * TODO: @mli: SerializationWrapper need to support a VERSION.
+ * This VERSION should also be passed to Serializable::serialize and
+ * Serializable::deserialize. Also, VERSION probably is only needed by
+ * Serializable types, for all the other std library types and trivial types,
+ * they won't change.
+ */
+// Defination not provided on purpose to prevent using the non-specialized
+// version.
+// https://stackoverflow.com/questions/7064039/how-to-prevent-non-specialized-template-instantiation
+// https://stackoverflow.com/questions/59952704/c20-concepts-which-template-specialization-gets-chosen-when-the-template-arg
+
+// Error throw are done by SerializationWrapper.
+// This means that as long as we use SerializationWrapper to
+// serialize/deserialize, we don't have to check for os/is.
+// SerializationWrapper::serialize only has an rvalue qualifier.
+// This is to make sure that we can only call .serialize() with an rvalue
+// wrapper, making sure that it's as efficient as possible for the container
+// specialization. The container specialization still might need a copy at
+// construction depending on whether lvalue or rvalue is used as parameter for
+// ctor.
+
+// If we get compile error complaining that SerializationWrapper is undefined,
+// it means that we are calling SerializationWrapper on sth that does not match
+// any of the specilization below.
+template <typename T>
+class SerializationWrapper;
+
+template <Serializable T>
+class SerializationWrapper<T> {
    public:
     using value_type = T;
 
-    TrivialWrapper() = default;
-    explicit TrivialWrapper(T t) : m_t(move(t)){};
+    SerializationWrapper() = default;
+    explicit SerializationWrapper(T t) : m_t(move(t)) {}
 
-    void serialize(ostream& os) const {
+    void serialize(ostream& os) && {
+        log::debug("Serializing Serializable data: ", m_t);
+        move(m_t).serializeImpl(os);
+        if (!os) {
+            log::errorAndThrow("Failed to serialize Serializable data!");
+        }
+    }
+
+    T deserialize(istream& is) && {
+        auto rtn = T().deserializeImpl(is);
+        if (!is) {
+            log::errorAndThrow("Failed to deserialize trivial data!");
+        }
+        log::debug("Successfully deserialized blob into Serializable data: ",
+                   rtn);
+        return rtn;
+    }
+
+    T m_t{};
+};
+
+template <Trivial T>
+class SerializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    SerializationWrapper() = default;
+    explicit SerializationWrapper(T t) : m_t(move(t)){};
+
+    void serialize(ostream& os) && {
+        log::debug("Serializing Trivial data: ", m_t);
         array<char, sizeof(T)> buf;
         copy(reinterpret_cast<const char*>(&m_t),
              reinterpret_cast<const char*>(&m_t) + sizeof(T), buf.begin());
@@ -38,19 +96,90 @@ class TrivialWrapper {
         }
     }
 
-    T&& deserialize(istream& is) && {
-        is.read(reinterpret_cast<char*>(&m_t), sizeof(T));
+    T deserialize(istream& is) && {
+        T rtn;
+        is.read(reinterpret_cast<char*>(&rtn), sizeof(T));
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
         }
-        return move(m_t);
+        log::debug("Successfully deserialized blob into Trivial data: ", rtn);
+        return rtn;
     }
 
-    T get() const { return m_t; }
-
-   protected:
     T m_t{};
 };
+
+template <Pair T>
+class SerializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    SerializationWrapper() = default;
+    explicit SerializationWrapper(T t) : m_t(move(t)){};
+
+    void serialize(ostream& os) && {
+        log::debug("Serializing Pair data: ", m_t);
+        // Serialize .first and .second.
+        SerializationWrapper<typename T::first_type>(m_t.first).serialize(os);
+        SerializationWrapper<typename T::second_type>(m_t.second).serialize(os);
+    }
+
+    T deserialize(istream& is) && {
+        // Deserialize .first and .second.
+        T rtn;
+        rtn.first =
+            SerializationWrapper<typename T::frist_type>().deserialize(is);
+        rtn.second =
+            SerializationWrapper<typename T::second_type>().deserialize(is);
+        log::debug("Successfully deserialized blob into Pair data: ", rtn);
+        return rtn;
+    }
+
+    T m_t{};
+};
+
+// TODO: @mli: Test if it's possible to deserialize a given stream of value_type
+// without knowing the size. This could be needed if we want to just load part
+// of the sstable into memory, given that we have index.
+template <SerializableContainer T>
+class SerializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    SerializationWrapper() = default;
+    explicit SerializationWrapper(T t) : m_t(move(t)){};
+
+    void serialize(ostream& os) && {
+        log::debug("Serializing SerializableContainer data: ", m_t);
+        SerializationWrapper<size_type>(m_t.size()).serialize(os);
+        // Then, serialize each element in container.
+        for (auto it = m_t.cbegin(); it != m_t.cend(); it++) {
+            SerializationWrapper<container_value_type>(move(*it)).serialize(os);
+        }
+    }
+
+    T deserialize(istream& is) && {
+        // Deserialize .first and .second.
+        T rtn;
+        size_type size = SerializationWrapper<size_type>().deserialize(is);
+        for (size_type i = 0; i < size; i++) {
+            rtn.insert(
+                rtn.end(),
+                SerializationWrapper<container_value_type>().deserialize(is));
+        }
+        log::debug(
+            "Successfully deserialized blob into SerializableContainer data: ",
+            rtn);
+        return rtn;
+    }
+
+    T m_t{};
+
+   private:
+    using container_value_type = typename T::value_type;
+    using size_type = decltype(m_t.size());
+};
+
 }  // namespace projectdb
 
 #endif  // MAIN_SERIALIZER_H

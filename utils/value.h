@@ -22,16 +22,20 @@ class Value {
 
     [[nodiscard]] string value() const;
 
+    void serializeImpl(ostream& os) &&;
+    Value deserializeImpl(istream& is) &&;
+
+    friend ostream& operator<<(ostream& os, const Value& value);
+    friend bool operator==(const Value& lhs, const Value& rhs);
+
    private:
     Type m_type;
     string m_value;
 };
 
-// Provide logging for Value::Type.
-ostream& operator<<(ostream& os, const Value::Type& t) {
-    os << static_cast<underlying_type<Value::Type>::type>(t);
-    return os;
-}
+ostream& operator<<(ostream& os, const Value::Type& type);
+ostream& operator<<(ostream& os, const Value& value);
+bool operator==(const Value& lhs, const Value& rhs);
 
 }  // namespace projectdb
 

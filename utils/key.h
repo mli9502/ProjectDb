@@ -13,7 +13,10 @@ namespace projectdb {
 
 class Key {
    public:
+    using size_type = string::size_type;
+
     // Ctor.
+    Key() = default;
     explicit Key(string key);
 
     ~Key() = default;
@@ -30,9 +33,47 @@ class Key {
 
     [[nodiscard]] string key() const;
 
+    /**
+     * NOTE: @mli:
+     * I want to make sure that these two methods can't be called directly.
+     * And serialization/deserialization must be done through
+     * SerializationWrapper due to the additional error checking. However, I
+     * didn't find a good way to handle this. Initially, I want to make
+     * serializeImpl and deserializeImpl private, and make SerializationWrapper
+     * a friend class. But, the use of Serializable concept requires method to
+     * be public. So, for now, just make the name <>Impl, hopefully indicate
+     * that these should not be called directly.
+     */
+    void serializeImpl(ostream& os) &&;
+    Key deserializeImpl(istream& is) &&;
+
+    friend ostream& operator<<(ostream& os, const Key& key);
+    friend bool operator==(const Key& lhs, const Key& rhs);
+
+    friend class std::less<Key>;
+
    private:
     string m_key;
 };
+
+ostream& operator<<(ostream& os, const Key& key);
+bool operator==(const Key& lhs, const Key& rhs);
+
 }  // namespace projectdb
+
+// Choose between operator< and specialize std::less:
+// https://stackoverflow.com/questions/1102392/how-can-i-use-stdmaps-with-user-defined-types-as-key
+namespace std {
+
+using namespace projectdb;
+
+template <>
+struct less<Key> {
+    bool operator()(const Key& lhs, const Key& rhs) const {
+        return lhs.m_key < rhs.m_key;
+    }
+};
+
+}  // namespace std
 
 #endif  // MAIN_KEY_H
