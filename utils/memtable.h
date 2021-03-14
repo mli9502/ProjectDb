@@ -18,37 +18,46 @@ namespace projectdb {
 class MemTable {
    public:
     using key_type = Key;
-    using mapped_type = vector<Value>;
+    using mapped_type = Value;
+
+    // Define max size to be 1 mb for now for testing.
+    static const unsigned APPROXIMATE_MAX_SIZE_IN_BYTES = 1 * 1024 * 1024;
+
+    void set(const key_type& key, mapped_type value);
+    // Returns the mapped_type (Value).
+    // Even if the value is deleted, return will NOT be empty because of
+    // TOMBSTONE.
+    [[nodiscard]] optional<mapped_type> getValueEntry(
+        const key_type& key) const;
+    // Returns the mapped_type::value_type (string).
+    // If the value is deleted, return will be empty.
+    [[nodiscard]] optional<mapped_type::value_type> getValue(
+        const key_type& key) const;
+    /**
+     * NOTE: @mli:
+     * delete(key) will ALWAYS SET a TOMBSTONE value instead of actually
+     * removing anything from the map. This is because a key can be presented in
+     * multiple sstable, and during compression, we need TOMBSTONE to be set
+     * correctly for each of these keys if delete is called during the time
+     * period corresponding to the sstable. This makes sure that compression of
+     * sstables works correctly.
+     */
+    void remove(const key_type& key);
 
     // Serialization/deserialization will be used by sstable.
     void serializeImpl(ostream& os) &&;
     MemTable deserializeImpl(istream& is) &&;
 
-    // TODO: @mli: Add get, set (When set is called, need to launch the async
-    // job to convert memtable to sstable, and start serialization.)
-    // TODO: @mli: Add size check? And maybe start adding callback to flush to
-    // sstable?
+    [[nodiscard]] unsigned getApproximateSizeInBytes() const;
 
     friend ostream& operator<<(ostream& os, const MemTable& memTable);
     friend bool operator==(const MemTable& lhs, const MemTable& rhs);
 
-   private:
-    /**
-     * NOTE: @mli:
-     * A vector of value is needed.
-     * This is because we could have a queue of memtable.
-     * In this case, when removing a key, we can't just remove the element from
-     * map, we have to add a TOMBSTONE value. If we just remove the value, we
-     * can't distinguish between value just never there, or it has been removed,
-     * as a result, we might think the value is still there if the set and
-     * delete operation are being added into different tables.
-     */
+   protected:
     map<key_type, mapped_type> m_memTable;
 };
 
 ostream& operator<<(ostream& os, const MemTable& memTable);
-bool operator==(const MemTable::mapped_type& lhs,
-                const MemTable::mapped_type& rhs);
 bool operator==(const MemTable& lhs, const MemTable& rhs);
 
 }  // namespace projectdb

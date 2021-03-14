@@ -13,11 +13,12 @@ namespace projectdb {
 
 class Key {
    public:
+    using value_type = string;
     using size_type = string::size_type;
 
     // Ctor.
     Key() = default;
-    explicit Key(string key);
+    explicit Key(value_type key);
 
     ~Key() = default;
 
@@ -31,7 +32,7 @@ class Key {
 
     Key& operator=(Key&& key) = default;
 
-    [[nodiscard]] string key() const;
+    [[nodiscard]] value_type key() const;
 
     /**
      * NOTE: @mli:
@@ -47,13 +48,15 @@ class Key {
     void serializeImpl(ostream& os) &&;
     Key deserializeImpl(istream& is) &&;
 
+    [[nodiscard]] unsigned getApproximateSizeInBytes() const;
+
     friend ostream& operator<<(ostream& os, const Key& key);
     friend bool operator==(const Key& lhs, const Key& rhs);
 
     friend class std::less<Key>;
 
    private:
-    string m_key;
+    value_type m_key;
 };
 
 ostream& operator<<(ostream& os, const Key& key);
