@@ -14,23 +14,28 @@ namespace projectdb {
 
 class Value {
    public:
+    using value_type = string;
+
     enum class Type { STRING_VALUE, TOMBSTONE_VALUE };
 
     // Ctor.
     Value();  // Constructs a TOMBSTONE_VALUE.
     explicit Value(string value);
 
-    [[nodiscard]] string value() const;
+    [[nodiscard]] bool isTombstoneValue() const;
+    [[nodiscard]] value_type value() const;
 
     void serializeImpl(ostream& os) &&;
     Value deserializeImpl(istream& is) &&;
+
+    [[nodiscard]] unsigned getApproximateSizeInBytes() const;
 
     friend ostream& operator<<(ostream& os, const Value& value);
     friend bool operator==(const Value& lhs, const Value& rhs);
 
    private:
     Type m_type;
-    string m_value;
+    value_type m_value;
 };
 
 ostream& operator<<(ostream& os, const Value::Type& type);

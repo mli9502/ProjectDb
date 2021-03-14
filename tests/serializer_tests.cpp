@@ -13,6 +13,8 @@ using namespace std;
 
 namespace projectdb {
 
+namespace test {
+
 namespace {
 
 struct TrivialStruct {
@@ -32,10 +34,6 @@ struct TrivialStruct {
 
 bool operator==(const TrivialStruct& lhs, const TrivialStruct& rhs) {
     return (lhs.m_a == rhs.m_a) && (lhs.m_b == rhs.m_b);
-}
-
-bool operator!=(const TrivialStruct& lhs, const TrivialStruct& rhs) {
-    return !(lhs == rhs);
 }
 
 ostream& operator<<(ostream& os, const TrivialStruct& t) {
@@ -154,5 +152,7 @@ template <>
 SerializationWrapper<Value>
     SerializationWrapperTestFixture<Value>::m_serializationWrapper{
         Value("Hello World Value!")};
+
+}  // namespace test
 
 }  // namespace projectdb

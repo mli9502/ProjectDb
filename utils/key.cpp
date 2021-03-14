@@ -10,17 +10,21 @@
 
 namespace projectdb {
 
-Key::Key(string key) : m_key(move(key)) {}
+Key::Key(value_type key) : m_key(move(key)) {}
 
-string Key::key() const { return m_key; }
+Key::value_type Key::key() const { return m_key; }
 
 void Key::serializeImpl(ostream& os) && {
-    SerializationWrapper<string>(move(m_key)).serialize(os);
+    SerializationWrapper<value_type>(move(m_key)).serialize(os);
 }
 
 Key Key::deserializeImpl(istream& is) && {
-    m_key = SerializationWrapper<string>().deserialize(is);
+    m_key = SerializationWrapper<value_type>().deserialize(is);
     return move(*this);
+}
+
+unsigned Key::getApproximateSizeInBytes() const {
+    return m_key.size() * sizeof(value_type::value_type);
 }
 
 ostream& operator<<(ostream& os, const Key& key) {
