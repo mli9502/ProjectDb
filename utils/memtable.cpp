@@ -6,6 +6,7 @@
 
 #include <algorithm>
 
+#include "db_config.h"
 #include "serializer.h"
 
 namespace projectdb {
@@ -47,12 +48,13 @@ MemTable MemTable::deserializeImpl(istream& is) && {
     return move(*this);
 }
 
-unsigned MemTable::getApproximateSizeInBytes() const {
-    unsigned rtn = 0;
+bool MemTable::needsFlushToDisk() const {
+    unsigned currSizeInBytes = 0;
     for (const auto& [k, v] : m_memTable) {
-        rtn += k.getApproximateSizeInBytes() + v.getApproximateSizeInBytes();
+        currSizeInBytes +=
+            k.getApproximateSizeInBytes() + v.getApproximateSizeInBytes();
     }
-    return rtn;
+    return currSizeInBytes >= db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
 }
 
 ostream& operator<<(ostream& os, const MemTable& memTable) {

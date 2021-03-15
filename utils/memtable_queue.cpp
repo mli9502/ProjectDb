@@ -46,13 +46,12 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
     const MemTable& memTable) {
     // TODO: @mli: Need to update this to memTable.sizeFull(). Also need to pass
     // max size as parameter.
-    if (memTable.getApproximateSizeInBytes() <
-        MemTable::APPROXIMATE_MAX_SIZE_IN_BYTES) {
+    if (!memTable.needsFlushToDisk()) {
         return {};
     }
-    log::debug("Size exceeds ", MemTable::APPROXIMATE_MAX_SIZE_IN_BYTES,
-               " bytes. Adding a new MemTable to queue and start async job to "
-               "flush memtable to disk...");
+    log::debug(
+        "MemTable needs to be flushed to disk. Adding a new MemTable to queue "
+        "and start async job to flush current MemTable to disk...");
     m_queue.push_back(make_shared<MemTable>());
     return async(launch::async, [&]() {
         log::debug(

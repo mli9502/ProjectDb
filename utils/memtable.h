@@ -21,9 +21,6 @@ class MemTable {
     using key_type = Key;
     using mapped_type = Value;
 
-    // Define max size to be 1 mb for now for testing.
-    static const unsigned APPROXIMATE_MAX_SIZE_IN_BYTES = 1 * 1024 * 1024;
-
     // Returns the mapped_type (Value).
     // Even if the value is deleted, return will NOT be empty because of
     // TOMBSTONE.
@@ -49,7 +46,7 @@ class MemTable {
     void serializeImpl(ostream& os) &&;
     MemTable deserializeImpl(istream& is) &&;
 
-    [[nodiscard]] unsigned getApproximateSizeInBytes() const;
+    [[nodiscard]] bool needsFlushToDisk() const;
 
     friend ostream& operator<<(ostream& os, const MemTable& memTable);
     friend bool operator==(const MemTable& lhs, const MemTable& rhs);
