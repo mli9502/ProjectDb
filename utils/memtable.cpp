@@ -5,16 +5,10 @@
 #include "memtable.h"
 
 #include <algorithm>
-#include <optional>
 
 #include "serializer.h"
 
 namespace projectdb {
-
-// https://stackoverflow.com/questions/26261007/why-is-value-taking-setter-member-functions-not-recommended-in-herb-sutters-cpp
-void MemTable::set(const key_type& key, mapped_type value) {
-    m_memTable[key] = move(value);
-}
 
 optional<MemTable::mapped_type> MemTable::getValueEntry(
     const key_type& key) const {
@@ -33,6 +27,11 @@ optional<MemTable::mapped_type::value_type> MemTable::getValue(
         return {};
     }
     return entry.value().value();
+}
+
+// https://stackoverflow.com/questions/26261007/why-is-value-taking-setter-member-functions-not-recommended-in-herb-sutters-cpp
+void MemTable::set(const key_type& key, mapped_type value) {
+    m_memTable[key] = move(value);
 }
 
 void MemTable::remove(const key_type& key) { set(key, mapped_type{}); }

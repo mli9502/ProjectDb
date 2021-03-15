@@ -4,4 +4,4 @@ project(utils LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(utils STATIC log.cpp exception.cpp memtable.cpp key.cpp value.cpp db_concepts.cpp serializer.cpp serializer.h)
+add_library(utils STATIC log.cpp exception.cpp memtable.cpp key.cpp value.cpp db_concepts.cpp serializer.cpp memtable_queue.cpp sstable_index.cpp)

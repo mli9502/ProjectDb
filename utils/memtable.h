@@ -6,6 +6,7 @@
 #define MAIN_MEMTABLE_H
 
 #include <map>
+#include <optional>
 #include <vector>
 
 #include "key.h"
@@ -23,7 +24,6 @@ class MemTable {
     // Define max size to be 1 mb for now for testing.
     static const unsigned APPROXIMATE_MAX_SIZE_IN_BYTES = 1 * 1024 * 1024;
 
-    void set(const key_type& key, mapped_type value);
     // Returns the mapped_type (Value).
     // Even if the value is deleted, return will NOT be empty because of
     // TOMBSTONE.
@@ -33,6 +33,7 @@ class MemTable {
     // If the value is deleted, return will be empty.
     [[nodiscard]] optional<mapped_type::value_type> getValue(
         const key_type& key) const;
+    void set(const key_type& key, mapped_type value);
     /**
      * NOTE: @mli:
      * delete(key) will ALWAYS SET a TOMBSTONE value instead of actually
