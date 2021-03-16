@@ -5,22 +5,17 @@
 #ifndef MAIN_MEMTABLE_H
 #define MAIN_MEMTABLE_H
 
-#include <map>
 #include <optional>
-#include <vector>
 
-#include "key.h"
-#include "value.h"
+#include "table.h"
 
 using namespace std;
 
 namespace projectdb {
 
-class MemTable {
+class MemTable : public Table {
    public:
-    using key_type = Key;
-    using mapped_type = Value;
-
+    MemTable();
     // Returns the mapped_type (Value).
     // Even if the value is deleted, return will NOT be empty because of
     // TOMBSTONE.
@@ -42,17 +37,10 @@ class MemTable {
      */
     void remove(const key_type& key);
 
-    // Serialization/deserialization will be used by sstable.
-    void serializeImpl(ostream& os) &&;
-    MemTable deserializeImpl(istream& is) &&;
-
     [[nodiscard]] bool needsFlushToDisk() const;
 
     friend ostream& operator<<(ostream& os, const MemTable& memTable);
     friend bool operator==(const MemTable& lhs, const MemTable& rhs);
-
-   protected:
-    map<key_type, mapped_type> m_memTable;
 };
 
 ostream& operator<<(ostream& os, const MemTable& memTable);

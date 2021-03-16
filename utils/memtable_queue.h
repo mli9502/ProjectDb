@@ -42,7 +42,7 @@ class MemTableQueue {
     void pop();
 
    private:
-    deque<shared_ptr<MemTable>> m_queue;
+    deque<MemTable> m_queue;
 
     [[nodiscard]] optional<future<SSTableIndex>> tryLaunchFlushToDisk(
         const MemTable& memTable);
