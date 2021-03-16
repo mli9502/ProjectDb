@@ -7,6 +7,7 @@
 
 #include <iostream>
 #include <map>
+#include <mutex>
 #include <sstream>
 
 #include "db_concepts.h"
@@ -61,22 +62,32 @@ requires Serializable<T>&& Container<T> class LogWrapper {
     using size_type = decltype(m_value.size());
 };
 
-}  // namespace impl
-
-using namespace impl;
-
 template <Loggable T>
-void debug(T&& arg) {
+void debugImpl(T&& arg) {
 #ifndef NDEBUG
     cout << arg << endl;
 #endif
 }
 
 template <Loggable T, Loggable... Ts>
-void debug(T&& arg, Ts&&... args) {
+void debugImpl(T&& arg, Ts&&... args) {
 #ifndef NDEBUG
     cout << arg;
-    debug(forward<Ts>(args)...);
+    debugImpl(forward<Ts>(args)...);
+#endif
+}
+
+extern mutex syncLog;
+
+}  // namespace impl
+
+using namespace impl;
+
+template <Loggable... Ts>
+void debug(Ts&&... args) {
+#ifndef NDEBUG
+    lock_guard<mutex> guard(syncLog);
+    debugImpl(forward<Ts>(args)...);
 #endif
 }
 

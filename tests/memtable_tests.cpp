@@ -14,7 +14,7 @@ namespace test {
 
 class MemTableTestFixture : public MemTable, public ::testing::Test {
    public:
-    map<key_type, mapped_type> getMemTable() { return m_memTable; }
+    shared_ptr<map<key_type, mapped_type>> getMemTable() { return m_table; }
 };
 
 TEST_F(MemTableTestFixture, SetGetRemoveTest) {
@@ -50,18 +50,20 @@ TEST_F(MemTableTestFixture, SetGetRemoveTest) {
     EXPECT_FALSE(valRtn.has_value());
 }
 
-TEST_F(MemTableTestFixture, RoundtripTest) {
-    MemTable expected;
-    expected.set(Key("key0"), Value("value0"));
-    expected.set(Key("key1"), Value("value1"));
-    expected.remove(Key("key2"));
-    stringstream ss;
-    EXPECT_NO_THROW(SerializationWrapper<MemTable>(expected).serialize(ss));
-    MemTable deserialized;
-    EXPECT_NO_THROW(deserialized =
-                        SerializationWrapper<MemTable>().deserialize(ss));
-    EXPECT_EQ(expected, deserialized);
-}
+// TODO: @mli: This test is not needed for now because serialization will be
+// done by SSTable.
+// TEST_F(MemTableTestFixture, RoundtripTest) {
+//    MemTable expected;
+//    expected.set(Key("key0"), Value("value0"));
+//    expected.set(Key("key1"), Value("value1"));
+//    expected.remove(Key("key2"));
+//    stringstream ss;
+//    EXPECT_NO_THROW(SerializationWrapper<MemTable>(expected).serialize(ss));
+//    MemTable deserialized;
+//    EXPECT_NO_THROW(deserialized =
+//                        SerializationWrapper<MemTable>().deserialize(ss));
+//    EXPECT_EQ(expected, deserialized);
+//}
 
 }  // namespace test
 }  // namespace projectdb

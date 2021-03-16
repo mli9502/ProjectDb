@@ -17,5 +17,5 @@ add_subdirectory(utils)
 add_subdirectory(tests)
 
 add_executable(${HW_NAME} main.cpp main.cpp)
-target_link_libraries(${HW_NAME} PUBLIC utils)
+target_link_libraries(${HW_NAME} PUBLIC utils pthread)
 

@@ -57,12 +57,23 @@ struct NotSerializableStruct {
 /**
  * Tests to make sure that the following types are Serializable.
  */
-using SerializableTypes = ::testing::Types<
-    int, Value::Type, TrivialStruct, Key, Value, MemTable, pair<int, string>,
-    pair<Key, Value>, pair<pair<Key, Value>, pair<int, string>>, vector<int>,
-    vector<Key>, vector<Value>, vector<MemTable>, map<int, string>,
-    map<Key, Value>, map<Key, vector<Value>>,
-    pair<map<Key, vector<Value>>, pair<map<int, string>, vector<Value>>>>;
+// clang-format off
+using SerializableTypes = ::testing::Types<int,
+                                            Value::Type,
+                                            TrivialStruct,
+                                            Key,
+                                            Value,
+                                            pair<int, string>,
+                                            pair<Key, Value>,
+                                            pair<pair<Key, Value>, pair<int, string>>,
+                                            vector<int>,
+                                            vector<Key>,
+                                            vector<Value>,
+                                            map<int, string>,
+                                            map<Key, Value>,
+                                            map<Key, vector<Value>>,
+                                            pair<map<Key, vector<Value>>, pair<map<int, string>, vector<Value>>>>;
+// clang-format on
 
 template <typename T>
 class SerializableConceptTestFixture : public ::testing::Test {};
@@ -89,9 +100,17 @@ TYPED_TEST(NotSerializableConceptTestFixture, NotSerializableTypesTest) {
     EXPECT_FALSE(Serializable<TypeParam>);
 }
 
+// clang-format off
 using SerializationWrapperTypes =
-    ::testing::Types<int, unsigned, double, bool, Value::Type, TrivialStruct,
-                     Key, Value>;
+    ::testing::Types<int,
+                    unsigned,
+                    double,
+                    bool,
+                    Value::Type,
+                    TrivialStruct,
+                    Key,
+                    Value>;
+// clang-format on
 
 template <typename T>
 class SerializationWrapperTestFixture : public ::testing::Test {

@@ -13,3 +13,5 @@ https://docs.google.com/document/d/1hUqSPuXYsKvIoN_2vQ-LpulPxyBMh52uJJ3slTLZsnc/
 - LevelDb: The database used at a single node of BigTable: https://github.com/google/leveldb
 - Google big table: http://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf
 - Designing Data-Intensive Applications: p76 - p79
+- https://thispointer.com//c11-multithreading-part-9-stdasync-tutorial-example/
+
