@@ -3,3 +3,11 @@
 //
 
 #include "log.h"
+
+namespace projectdb {
+namespace log {
+namespace impl {
+mutex syncLog;
+}
+}  // namespace log
+}  // namespace projectdb

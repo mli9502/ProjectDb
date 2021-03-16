@@ -4,6 +4,10 @@
 
 #include "sstable.h"
 
+// TODO: @mli: remove chrono & thread when we remove sleep.
+#include <chrono>
+#include <thread>
+
 #include "log.h"
 
 namespace projectdb {
@@ -26,6 +30,7 @@ SSTableIndex SSTable::flushToDisk() const {
     log::debug("Flush SSTable to disk with file name: ", ssTableFileName);
     // TODO: @mli: Add code to open file, serialize, and flush to disk. Remember
     // to include the timestamp as metadata.
+    this_thread::sleep_for(chrono::seconds(5));
     return SSTableIndex();
 }
 

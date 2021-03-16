@@ -8,6 +8,7 @@
 #include <thread>
 
 #include "log.h"
+#include "sstable.h"
 #include "sstable_index.h"
 
 using namespace std;
@@ -55,8 +56,8 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
         log::debug(
             "Build SSTable, flush it to disk and build SSTableIndex from "
             "memTable...");
-        // TODO: @mli: Implement this. And add sleep for now for testing.
-        return SSTableIndex();
+        SSTable ssTable{memTable.getTable()};
+        return ssTable.flushToDisk();
     });
 }
 

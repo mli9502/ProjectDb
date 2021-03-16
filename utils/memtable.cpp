@@ -46,6 +46,8 @@ bool MemTable::needsFlushToDisk() const {
         currSizeInBytes +=
             k.getApproximateSizeInBytes() + v.getApproximateSizeInBytes();
     }
+    log::debug("Current MemTable size is approximate ", currSizeInBytes,
+               " bytes.");
     return currSizeInBytes >= db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
 }
 
