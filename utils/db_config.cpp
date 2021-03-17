@@ -16,6 +16,7 @@ string DB_FILE_PREFIX = "project_db";
 string DB_FILE_PATH = "./projectdb";
 
 string SSTABLE_FILE_TYPE = "sst";
-}
+
+}  // namespace db_config
 
 }  // namespace projectdb
