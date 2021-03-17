@@ -82,7 +82,7 @@ template <typename T>
 struct serializable_base_trait : std::false_type {};
 template <SerializableBase T>
 struct serializable_base_trait<T> : std::true_type {};
-
+// Define type trait for generic serializable.
 template <typename T>
 struct serializable_trait : serializable_base_trait<T> {};
 template <Pair T>
