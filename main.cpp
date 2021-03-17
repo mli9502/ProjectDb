@@ -7,6 +7,7 @@
 #include "log.h"
 #include "memtable_queue.h"
 #include "serializer.h"
+#include "sstable.h"
 #include "value.h"
 
 using namespace std;
@@ -48,21 +49,38 @@ int main() {
     //        Serializable<pair<int, vector<pair<vector<pair<Key, Value>>,
     //        Key>>>>, "Pair<int, vector<int>>");
 
-    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 100;
-    MemTableQueue mq;
-    vector<future<SSTableIndex>> futures;
-    for (int i = 0; i < 20; i++) {
-        auto tmp = mq.set(to_string(i), "Hello World!");
-        if (tmp.has_value()) {
-            futures.emplace_back(move(tmp.value()));
-        }
-    }
-    int cnt = 0;
-    for (auto& ft : futures) {
-        while (ft.wait_for(chrono::seconds(0)) != future_status::ready) {
-        }
-        log::debug("Future ", cnt, " ready!");
-        cnt += 1;
-    }
+    //    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 100;
+    //    MemTableQueue mq;
+    //    vector<future<SSTableIndex>> futures;
+    //    for (int i = 0; i < 20; i++) {
+    //        auto tmp = mq.set(to_string(i), "Hello World!");
+    //        if (tmp.has_value()) {
+    //            futures.emplace_back(move(tmp.value()));
+    //        }
+    //    }
+    //    int cnt = 0;
+    //    for (auto& ft : futures) {
+    //        while (ft.wait_for(chrono::seconds(0)) != future_status::ready) {
+    //        }
+    //        log::debug("Future ", cnt, " ready!");
+    //        cnt += 1;
+    //    }
+
+    SSTable sst;
+    sst.loadFromDisk("project_db_2_13972.sst");
+
     return 0;
 }
+
+/*
+ * TODO: @mli:
+ * Need to consider how should we handle the case the the library is called in
+ * a:
+ * 1. multi-process way: We probably need to distinguish file name between
+ * different processes.
+ * 2. multi-thread way: We probably need to provide an option for user to
+ * initialize ProjectDb with "forceThreadSafe" as parameter. And we need to add
+ * locking around get, set and remove ops to make sure it's thread safe. Maybe
+ * create a ThreadSafeDecorator for the operations, which acquires a lock before
+ * calling those ops?
+ */
