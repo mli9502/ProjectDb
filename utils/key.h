@@ -10,7 +10,10 @@
 using namespace std;
 
 namespace projectdb {
-
+/**
+* The class Key represents a key in the database. 
+* The key itself is a string and the class supports seralization to disk and deseralization from disk.
+*/
 class Key {
    public:
     using value_type = string;
