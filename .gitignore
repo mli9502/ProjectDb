@@ -5,3 +5,4 @@ cmake-*/
 *.rej
 *.pdf
 *.diff
+html/
