@@ -58,7 +58,7 @@ class SerializationWrapper<T> {
     explicit SerializationWrapper(T t) : m_t(move(t)){};
 
     void serialize(ostream& os) && {
-        log::debug("Serializing Trivial data: ", m_t);
+        //        log::debug("Serializing Trivial data: ", m_t);
         array<char, sizeof(T)> buf;
         copy(reinterpret_cast<const char*>(&m_t),
              reinterpret_cast<const char*>(&m_t) + sizeof(T), buf.begin());
@@ -74,7 +74,8 @@ class SerializationWrapper<T> {
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
         }
-        log::debug("Successfully deserialized blob into Trivial data: ", rtn);
+        //        log::debug("Successfully deserialized blob into Trivial data:
+        //        ", rtn);
         return rtn;
     }
 
@@ -178,6 +179,35 @@ class SerializationWrapper<T> {
         }
     }
 
+    template <typename InvocableT>
+    requires IndexBuilderInvocable<InvocableT, T> void serialize(
+        ostream& os, InvocableT tryBuildIndex) && {
+        log::debug("Serializing SerializableContainer data: ", m_t);
+        SerializationWrapper<size_type>(m_t.size()).serialize(os);
+        streamsize currBlockSize = 0;
+        auto prevPos = os.tellp();
+        auto currPos = prevPos;
+        // Then, serialize each element in container.
+        for (auto it = m_t.begin(); it != m_t.end(); it++) {
+            if (it == m_t.begin()) {
+                tryBuildIndex(*it, currPos, currBlockSize, true);
+            }
+            SerializationWrapper<container_value_type>(move(*it)).serialize(os);
+            prevPos = currPos;
+            currPos = os.tellp();
+            currBlockSize += currPos - prevPos;
+            if (it != m_t.begin()) {
+                bool isLastEntry = (distance(it, m_t.end()) == 1);
+                bool indexAdded =
+                    tryBuildIndex(*it, currPos, currBlockSize, isLastEntry);
+                // Reset the block size accumulator if we just add an index.
+                if (indexAdded) {
+                    currBlockSize = 0;
+                }
+            }
+        }
+    }
+
     T deserialize(istream& is) && {
         // Deserialize .first and .second.
         T rtn;
@@ -192,6 +222,8 @@ class SerializationWrapper<T> {
             rtn);
         return rtn;
     }
+
+    // TODO: @mli: Add deserialize several entries to a container.
 
     T m_t{};
 
