@@ -50,6 +50,8 @@ SSTableIndex SSTable::flushToDisk() const {
     return rtn;
 }
 
+// TODO: @mli: Need to add .deserialize support for building the index, similar
+// to .serialize.
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
     // TODO: @mli: Add code to read from file, deserialize, and populate
