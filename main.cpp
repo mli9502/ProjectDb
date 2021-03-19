@@ -8,6 +8,7 @@
 #include "memtable_queue.h"
 #include "serializer.h"
 #include "sstable.h"
+#include "table.h"
 #include "value.h"
 
 using namespace std;
@@ -50,10 +51,12 @@ int main() {
     //        Key>>>>, "Pair<int, vector<int>>");
 
     db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 100;
+    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 50;
     MemTableQueue mq;
     vector<future<SSTableIndex>> futures;
     for (int i = 0; i < 6; i++) {
-        auto tmp = mq.set(to_string(i), "Hello World!");
+        auto tmp =
+            mq.set(to_string(2 * i), "! Hello World " + to_string(2 * i));
         if (tmp.has_value()) {
             futures.emplace_back(move(tmp.value()));
         }
@@ -62,13 +65,25 @@ int main() {
     for (auto& ft : futures) {
         while (ft.wait_for(chrono::seconds(0)) != future_status::ready) {
         }
-        log::debug("Future ", cnt, " ready: ", ft.get());
+        auto index = ft.get();
+        log::debug("Future ", cnt, " ready: ", index);
         cnt += 1;
+        Key key("6");
+        auto tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        //        auto tmpTable =
+        //        SerializationWrapper<Table::mapped_type>().deserialize()
     }
 
+    //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 0;
     //    SSTable sst;
-    //    sst.loadFromDisk("project_db_2_13972.sst");
-
+    //    SSTableIndex ssti;
+    //    sst.loadFromDisk("project_db_0_22590.sst", &ssti);
+    //    log::debug(ssti);
     return 0;
 }
 
