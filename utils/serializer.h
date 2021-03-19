@@ -246,6 +246,21 @@ class SerializationWrapper<T> {
         return rtn;
     }
 
+    T deserialize(istream& is, ios::pos_type start, ios::pos_type end) {
+        T rtn;
+        is.seekg(start);
+        auto currPos = start;
+        while (currPos < end) {
+            rtn.insert(
+                rtn.end(),
+                SerializationWrapper<container_value_type>().deserialize(is));
+            currPos = is.tellg();
+        }
+        log::debug("Successfully deserialized entries in pos range [", start,
+                   ", ", end, "): ", rtn);
+        return rtn;
+    }
+
     // TODO: @mli: Add deserialize several entries to a container.
 
     T m_t{};

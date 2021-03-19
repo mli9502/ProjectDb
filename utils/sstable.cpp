@@ -7,8 +7,6 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-// TODO: @mli: remove thread when we remove sleep.
-#include <thread>
 
 #include "db_config.h"
 #include "log.h"
@@ -32,8 +30,9 @@ SSTable::SSTable(shared_ptr<value_type> table) : Table(), m_metaData() {
 }
 
 SSTableIndex SSTable::flushToDisk() const {
-    SSTableIndex rtn;
-    auto fs = getFileStream(genSSTableFileName(), ios::out);
+    auto ssTableFileName = genSSTableFileName();
+    SSTableIndex rtn(ssTableFileName);
+    auto fs = getFileStream(ssTableFileName, ios::out);
     SerializationWrapper<decltype(m_metaData)>(m_metaData).serialize(fs);
     SerializationWrapper<value_type>(*m_table).serialize(
         fs, [&](value_type::value_type& entry, ios::pos_type pos,
@@ -45,8 +44,8 @@ SSTableIndex SSTable::flushToDisk() const {
             rtn.addIndex(entry.first, pos);
             return true;
         });
-    // TODO: @mli: Remove this sleep.
-    this_thread::sleep_for(chrono::seconds(5));
+    rtn.setEofPos(fs.tellp());
+    //    this_thread::sleep_for(chrono::seconds(5));
     return rtn;
 }
 
@@ -61,9 +60,6 @@ SSTableIndex SSTable::flushToDisk() const {
  */
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
-    // TODO: @mli: Add code to read from file, deserialize, and populate
-    // m_table. If ssTableIndex is not null, also populate the index. This is
-    // needed when we load SSTable back from disk to recover from a crash.
     auto fs = getFileStream(ssTableFileName, ios::in);
     m_metaData = SerializationWrapper<decltype(m_metaData)>().deserialize(fs);
     m_table =
@@ -81,6 +77,9 @@ void SSTable::loadFromDisk(string_view ssTableFileName,
                 ssTableIndex->addIndex(entry.first, pos);
                 return true;
             }));
+    if (ssTableIndex) {
+        ssTableIndex->setEofPos(fs.tellg());
+    }
     log::debug("Successfully deserialzed SSTable: ", *this);
 }
 
