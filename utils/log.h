@@ -39,7 +39,7 @@ ostringstream& errorAndThrowImpl(ostringstream& oss, T&& arg, Ts&&... args) {
 // https://stackoverflow.com/questions/54912163/narrowing-down-a-c-concept-to-exclude-certain-types
 // https://stackoverflow.com/questions/13724766/how-to-write-a-streaming-operator-that-can-take-arbitary-containers-of-type
 template <typename T>
-requires Serializable<T>&& Container<T> class LogWrapper {
+requires Loggable<T>&& Container<T> class LogWrapper {
    public:
     LogWrapper(const T& value) : m_value(value) {}
 

@@ -4,4 +4,17 @@
 
 #include "sstable_index.h"
 
-namespace projectdb {}
+#include "log.h"
+
+namespace projectdb {
+
+void SSTableIndex::addIndex(Table::key_type key, ios::pos_type pos) {
+    m_index[move(key)] = pos;
+}
+
+ostream& operator<<(ostream& os, const SSTableIndex& ssTableIndex) {
+    os << "{ m_index: [ " << ssTableIndex.m_index << " ]}";
+    return os;
+}
+
+}  // namespace projectdb

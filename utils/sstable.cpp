@@ -32,17 +32,26 @@ SSTable::SSTable(shared_ptr<value_type> table) : Table(), m_metaData() {
 }
 
 SSTableIndex SSTable::flushToDisk() const {
+    SSTableIndex rtn;
     auto fs = getFileStream(genSSTableFileName(), ios::out);
-
     SerializationWrapper<decltype(m_metaData)>(m_metaData).serialize(fs);
-    // TODO: @mli: For now, just flush the whole map. Latter, we have to update
-    // it to flush entry by entry in order to build the index.
-    SerializationWrapper<value_type>(*m_table).serialize(fs);
+    SerializationWrapper<value_type>(*m_table).serialize(
+        fs, [&](value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLast) {
+            if (!isFirstOrLast &&
+                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                return false;
+            }
+            rtn.addIndex(entry.first, pos);
+            return true;
+        });
     // TODO: @mli: Remove this sleep.
     this_thread::sleep_for(chrono::seconds(5));
-    return SSTableIndex();
+    return rtn;
 }
 
+// TODO: @mli: Need to add .deserialize support for building the index, similar
+// to .serialize.
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
     // TODO: @mli: Add code to read from file, deserialize, and populate

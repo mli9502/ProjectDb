@@ -8,7 +8,8 @@ namespace projectdb {
 
 namespace db_config {
 
-unsigned MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024 * 1024;
+unsigned MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024 * 1024;  // 16 mb
+unsigned SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 512 * 1024;             // 0.5 mb
 
 string DB_FILE_PREFIX = "project_db";
 

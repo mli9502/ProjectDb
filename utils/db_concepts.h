@@ -99,6 +99,13 @@ concept SerializablePair = Pair<T>&& Serializable<T>;
 template <typename T>
 concept SerializableContainer = Container<T>&& Serializable<T>;
 
+// The invocable needs to return a bool indicating that a new index has been
+// created. This is needed to reset the current accumulated block size. Also
+// need to take an indicator indicates that if it's start/end of file.
+template <typename T, typename U>
+concept IndexBuilderInvocable = SerializableContainer<U>&& is_invocable_r<
+    bool, T, typename U::value_type&, ios::pos_type, streamsize, bool>::value;
+
 namespace impl {
 
 template <typename T>
