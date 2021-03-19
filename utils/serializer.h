@@ -189,33 +189,56 @@ class SerializationWrapper<T> {
         auto currPos = prevPos;
         // Then, serialize each element in container.
         for (auto it = m_t.begin(); it != m_t.end(); it++) {
-            if (it == m_t.begin()) {
-                tryBuildIndex(*it, currPos, currBlockSize, true);
+            bool isFirstOrLastEntry =
+                ((it == m_t.begin()) || (distance(it, m_t.end()) == 1));
+            bool indexAdded =
+                tryBuildIndex(*it, currPos, currBlockSize, isFirstOrLastEntry);
+            // Reset the block size accumulator if we just add an index.
+            if (indexAdded) {
+                currBlockSize = 0;
             }
             SerializationWrapper<container_value_type>(move(*it)).serialize(os);
             prevPos = currPos;
             currPos = os.tellp();
             currBlockSize += currPos - prevPos;
-            if (it != m_t.begin()) {
-                bool isLastEntry = (distance(it, m_t.end()) == 1);
-                bool indexAdded =
-                    tryBuildIndex(*it, currPos, currBlockSize, isLastEntry);
-                // Reset the block size accumulator if we just add an index.
-                if (indexAdded) {
-                    currBlockSize = 0;
-                }
-            }
         }
     }
 
     T deserialize(istream& is) && {
-        // Deserialize .first and .second.
         T rtn;
         size_type size = SerializationWrapper<size_type>().deserialize(is);
         for (size_type i = 0; i < size; i++) {
             rtn.insert(
                 rtn.end(),
                 SerializationWrapper<container_value_type>().deserialize(is));
+        }
+        log::debug(
+            "Successfully deserialized blob into SerializableContainer data: ",
+            rtn);
+        return rtn;
+    }
+
+    template <typename InvocableT>
+    requires IndexBuilderInvocable<InvocableT, T> T
+    deserialize(istream& is, InvocableT tryBuildIndex) && {
+        T rtn;
+        size_type size = SerializationWrapper<size_type>().deserialize(is);
+        streamsize currBlockSize = 0;
+        auto prevPos = is.tellg();
+        auto currPos = prevPos;
+        for (size_type i = 0; i < size; i++) {
+            rtn.insert(
+                rtn.end(),
+                SerializationWrapper<container_value_type>().deserialize(is));
+            bool isFirstOrLastEntry = ((i == 0) || (i == size - 1));
+            prevPos = currPos;
+            currPos = is.tellg();
+            currBlockSize += currPos - prevPos;
+            bool indexAdded = tryBuildIndex(*(rtn.rbegin()), prevPos,
+                                            currBlockSize, isFirstOrLastEntry);
+            if (indexAdded) {
+                currBlockSize = 0;
+            }
         }
         log::debug(
             "Successfully deserialized blob into SerializableContainer data: ",

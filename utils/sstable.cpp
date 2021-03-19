@@ -37,8 +37,8 @@ SSTableIndex SSTable::flushToDisk() const {
     SerializationWrapper<decltype(m_metaData)>(m_metaData).serialize(fs);
     SerializationWrapper<value_type>(*m_table).serialize(
         fs, [&](value_type::value_type& entry, ios::pos_type pos,
-                streamsize currBlockSize, bool isFirstOrLast) {
-            if (!isFirstOrLast &&
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+            if (!isFirstOrLastEntry &&
                 currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
                 return false;
             }
@@ -50,8 +50,15 @@ SSTableIndex SSTable::flushToDisk() const {
     return rtn;
 }
 
-// TODO: @mli: Need to add .deserialize support for building the index, similar
-// to .serialize.
+/**
+ * Load and deserialize SSTable from disk with given file name.
+ * Note that we don't always need index to be built.
+ * Index needs to be built when we load from disk to recover from failure.
+ * Index doesn't need to be built if we load from disk to merge SSTables. In
+ * this case, ssTableIndex will be nullptr.
+ * @param ssTableFileName
+ * @param ssTableIndex
+ */
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
     // TODO: @mli: Add code to read from file, deserialize, and populate
@@ -59,8 +66,21 @@ void SSTable::loadFromDisk(string_view ssTableFileName,
     // needed when we load SSTable back from disk to recover from a crash.
     auto fs = getFileStream(ssTableFileName, ios::in);
     m_metaData = SerializationWrapper<decltype(m_metaData)>().deserialize(fs);
-    m_table = make_shared<value_type>(
-        SerializationWrapper<value_type>().deserialize(fs));
+    m_table =
+        make_shared<value_type>(SerializationWrapper<value_type>().deserialize(
+            fs, [&](value_type::value_type& entry, ios::pos_type pos,
+                    streamsize currBlockSize, bool isFirstOrLastEntry) {
+                if (!ssTableIndex) {
+                    return false;
+                }
+                if (!isFirstOrLastEntry &&
+                    currBlockSize <
+                        db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                    return false;
+                }
+                ssTableIndex->addIndex(entry.first, pos);
+                return true;
+            }));
     log::debug("Successfully deserialzed SSTable: ", *this);
 }
 
