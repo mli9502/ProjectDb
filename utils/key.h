@@ -12,7 +12,7 @@ using namespace std;
 namespace projectdb {
 /**
 * The class Key represents a key in the database. 
-* The key itself is a string and the class supports seralization to disk and deseralization from disk.
+* The key itself is a string and the class supports serialization to disk and deseralization from disk.
 */
 class Key {
    public:
