@@ -48,7 +48,7 @@ class Key {
      * be public. So, for now, just make the name <>Impl, hopefully indicate
      * that these should not be called directly.
      */
-    void serializeImpl(ostream& os) &&;
+    void serializeImpl(ostream& os) const&;
     Key deserializeImpl(istream& is) &&;
 
     [[nodiscard]] unsigned getApproximateSizeInBytes() const;

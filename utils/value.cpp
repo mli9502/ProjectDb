@@ -23,16 +23,14 @@ Value::value_type Value::value() const {
     return m_value;
 }
 
-void Value::serializeImpl(ostream& os) && {
-    // NOTE: @mli: From clang-tidy: std::move of the expression of the
-    // trivially-copyable type 'projectdb::Value::Type' has no effect;
-    SerializationWrapper<Value::Type>(m_type).serialize(os);
-    SerializationWrapper<value_type>(move(m_value)).serialize(os);
+void Value::serializeImpl(ostream& os) const& {
+    SerializationWrapper<Value::Type>{m_type}(os);
+    SerializationWrapper<value_type>{m_value}(os);
 }
 
 Value Value::deserializeImpl(istream& is) && {
-    m_type = SerializationWrapper<Value::Type>().deserialize(is);
-    m_value = SerializationWrapper<value_type>().deserialize(is);
+    m_type = DeserializationWrapper<Value::Type>{}(is);
+    m_value = DeserializationWrapper<value_type>{}(is);
     return move(*this);
 }
 

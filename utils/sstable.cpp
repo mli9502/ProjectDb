@@ -7,8 +7,6 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
-// TODO: @mli: remove thread when we remove sleep.
-#include <thread>
 
 #include "db_config.h"
 #include "log.h"
@@ -32,26 +30,54 @@ SSTable::SSTable(shared_ptr<value_type> table) : Table(), m_metaData() {
 }
 
 SSTableIndex SSTable::flushToDisk() const {
-    auto fs = getFileStream(genSSTableFileName(), ios::out);
-
-    SerializationWrapper<decltype(m_metaData)>(m_metaData).serialize(fs);
-    // TODO: @mli: For now, just flush the whole map. Latter, we have to update
-    // it to flush entry by entry in order to build the index.
-    SerializationWrapper<value_type>(*m_table).serialize(fs);
-    // TODO: @mli: Remove this sleep.
-    this_thread::sleep_for(chrono::seconds(5));
-    return SSTableIndex();
+    auto ssTableFileName = genSSTableFileName();
+    SSTableIndex rtn(ssTableFileName);
+    auto fs = getFileStream(ssTableFileName, ios::out);
+    SerializationWrapper<SSTableMetaData>{m_metaData}(fs);
+    SerializationWrapper<value_type>{*m_table}(
+        fs, [&](const value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+            if (!isFirstOrLastEntry &&
+                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                return false;
+            }
+            rtn.addIndex(entry.first, pos);
+            return true;
+        });
+    rtn.setEofPos(fs.tellp());
+    //    this_thread::sleep_for(chrono::seconds(5));
+    return rtn;
 }
 
+/**
+ * Load and deserialize SSTable from disk with given file name.
+ * Note that we don't always need index to be built.
+ * Index needs to be built when we load from disk to recover from failure.
+ * Index doesn't need to be built if we load from disk to merge SSTables. In
+ * this case, ssTableIndex will be nullptr.
+ * @param ssTableFileName
+ * @param ssTableIndex
+ */
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
-    // TODO: @mli: Add code to read from file, deserialize, and populate
-    // m_table. If ssTableIndex is not null, also populate the index. This is
-    // needed when we load SSTable back from disk to recover from a crash.
     auto fs = getFileStream(ssTableFileName, ios::in);
-    m_metaData = SerializationWrapper<decltype(m_metaData)>().deserialize(fs);
-    m_table = make_shared<value_type>(
-        SerializationWrapper<value_type>().deserialize(fs));
+    m_metaData = DeserializationWrapper<decltype(m_metaData)>{}(fs);
+    m_table = make_shared<value_type>(DeserializationWrapper<value_type>{}(
+        fs, [&](const value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+            if (!ssTableIndex) {
+                return false;
+            }
+            if (!isFirstOrLastEntry &&
+                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                return false;
+            }
+            ssTableIndex->addIndex(entry.first, pos);
+            return true;
+        }));
+    if (ssTableIndex) {
+        ssTableIndex->setEofPos(fs.tellg());
+    }
     log::debug("Successfully deserialzed SSTable: ", *this);
 }
 
@@ -66,13 +92,13 @@ SSTable::SSTableMetaData::SSTableMetaData()
                          chrono::system_clock::now().time_since_epoch())
                          .count()) {}
 
-void SSTable::SSTableMetaData::serializeImpl(ostream& os) && {
-    SerializationWrapper<ts_unit_type::rep>(m_msSinceEpoch).serialize(os);
+void SSTable::SSTableMetaData::serializeImpl(ostream& os) const& {
+    SerializationWrapper<ts_unit_type::rep>{m_msSinceEpoch}(os);
 }
 
 SSTable::SSTableMetaData SSTable::SSTableMetaData::deserializeImpl(
     istream& is) && {
-    m_msSinceEpoch = SerializationWrapper<ts_unit_type::rep>().deserialize(is);
+    m_msSinceEpoch = DeserializationWrapper<ts_unit_type::rep>{}(is);
     return move(*this);
 }
 

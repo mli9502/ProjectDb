@@ -21,7 +21,7 @@ concept SerializableUserDefinedType = requires(T t, ostream& os, istream& is) {
     // T needs to be default constructable.
     { T() }
     ->same_as<T>;
-    { move(t).serializeImpl(os) }
+    { const_cast<T*>(&t)->serializeImpl(os) }
     ->same_as<void>;
     { move(t).deserializeImpl(is) }
     ->same_as<T>;
@@ -49,6 +49,7 @@ template <typename T>
 concept Container = requires(T t, typename T::iterator it,
                              typename T::value_type val) {
     typename T::value_type;
+    typename T::size_type;
     typename T::iterator;
     typename T::const_iterator;
     { t.begin() }
@@ -98,6 +99,13 @@ template <typename T>
 concept SerializablePair = Pair<T>&& Serializable<T>;
 template <typename T>
 concept SerializableContainer = Container<T>&& Serializable<T>;
+
+// The invocable needs to return a bool indicating that a new index has been
+// created. This is needed to reset the current accumulated block size. Also
+// need to take an indicator indicates that if it's start/end of file.
+template <typename T, typename U>
+concept IndexBuilderInvocable = SerializableContainer<U>&& is_invocable_r<
+    bool, T, typename U::value_type&, ios::pos_type, streamsize, bool>::value;
 
 namespace impl {
 
