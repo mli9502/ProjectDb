@@ -62,21 +62,19 @@ void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
     auto fs = getFileStream(ssTableFileName, ios::in);
     m_metaData = DeserializationWrapper<decltype(m_metaData)>{}(fs);
-    m_table =
-        make_shared<value_type>(DeserializationWrapper<value_type>{}(
-            fs, [&](const value_type::value_type& entry, ios::pos_type pos,
-                    streamsize currBlockSize, bool isFirstOrLastEntry) {
-                if (!ssTableIndex) {
-                    return false;
-                }
-                if (!isFirstOrLastEntry &&
-                    currBlockSize <
-                        db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
-                    return false;
-                }
-                ssTableIndex->addIndex(entry.first, pos);
-                return true;
-            }));
+    m_table = make_shared<value_type>(DeserializationWrapper<value_type>{}(
+        fs, [&](const value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+            if (!ssTableIndex) {
+                return false;
+            }
+            if (!isFirstOrLastEntry &&
+                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                return false;
+            }
+            ssTableIndex->addIndex(entry.first, pos);
+            return true;
+        }));
     if (ssTableIndex) {
         ssTableIndex->setEofPos(fs.tellg());
     }
