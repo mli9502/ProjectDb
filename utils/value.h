@@ -25,7 +25,7 @@ class Value {
     [[nodiscard]] bool isTombstoneValue() const;
     [[nodiscard]] value_type value() const;
 
-    void serializeImpl(ostream& os) &&;
+    void serializeImpl(ostream& os) const&;
     Value deserializeImpl(istream& is) &&;
 
     [[nodiscard]] unsigned getApproximateSizeInBytes() const;

@@ -33,9 +33,9 @@ SSTableIndex SSTable::flushToDisk() const {
     auto ssTableFileName = genSSTableFileName();
     SSTableIndex rtn(ssTableFileName);
     auto fs = getFileStream(ssTableFileName, ios::out);
-    SerializationWrapper<decltype(m_metaData)>(m_metaData).serialize(fs);
-    SerializationWrapper<value_type>(*m_table).serialize(
-        fs, [&](value_type::value_type& entry, ios::pos_type pos,
+    SerializationWrapper<SSTableMetaData>{m_metaData}(fs);
+    SerializationWrapper<value_type>{*m_table}(
+        fs, [&](const value_type::value_type& entry, ios::pos_type pos,
                 streamsize currBlockSize, bool isFirstOrLastEntry) {
             if (!isFirstOrLastEntry &&
                 currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
@@ -61,22 +61,20 @@ SSTableIndex SSTable::flushToDisk() const {
 void SSTable::loadFromDisk(string_view ssTableFileName,
                            SSTableIndex* ssTableIndex) {
     auto fs = getFileStream(ssTableFileName, ios::in);
-    m_metaData = SerializationWrapper<decltype(m_metaData)>().deserialize(fs);
-    m_table =
-        make_shared<value_type>(SerializationWrapper<value_type>().deserialize(
-            fs, [&](value_type::value_type& entry, ios::pos_type pos,
-                    streamsize currBlockSize, bool isFirstOrLastEntry) {
-                if (!ssTableIndex) {
-                    return false;
-                }
-                if (!isFirstOrLastEntry &&
-                    currBlockSize <
-                        db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
-                    return false;
-                }
-                ssTableIndex->addIndex(entry.first, pos);
-                return true;
-            }));
+    m_metaData = DeserializationWrapper<decltype(m_metaData)>{}(fs);
+    m_table = make_shared<value_type>(DeserializationWrapper<value_type>{}(
+        fs, [&](const value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+            if (!ssTableIndex) {
+                return false;
+            }
+            if (!isFirstOrLastEntry &&
+                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                return false;
+            }
+            ssTableIndex->addIndex(entry.first, pos);
+            return true;
+        }));
     if (ssTableIndex) {
         ssTableIndex->setEofPos(fs.tellg());
     }
@@ -94,13 +92,13 @@ SSTable::SSTableMetaData::SSTableMetaData()
                          chrono::system_clock::now().time_since_epoch())
                          .count()) {}
 
-void SSTable::SSTableMetaData::serializeImpl(ostream& os) && {
-    SerializationWrapper<ts_unit_type::rep>(m_msSinceEpoch).serialize(os);
+void SSTable::SSTableMetaData::serializeImpl(ostream& os) const& {
+    SerializationWrapper<ts_unit_type::rep>{m_msSinceEpoch}(os);
 }
 
 SSTable::SSTableMetaData SSTable::SSTableMetaData::deserializeImpl(
     istream& is) && {
-    m_msSinceEpoch = SerializationWrapper<ts_unit_type::rep>().deserialize(is);
+    m_msSinceEpoch = DeserializationWrapper<ts_unit_type::rep>{}(is);
     return move(*this);
 }
 
