@@ -34,7 +34,6 @@ SSTableIndex SSTable::flushToDisk() const {
     SSTableIndex rtn(ssTableFileName);
     auto fs = getFileStream(ssTableFileName, ios::out);
     SerializationWrapper<SSTableMetaData>{m_metaData}(fs);
-    // TODO: @mli: We need to avoid copy in here...
     SerializationWrapper<value_type>{*m_table}(
         fs, [&](const value_type::value_type& entry, ios::pos_type pos,
                 streamsize currBlockSize, bool isFirstOrLastEntry) {
