@@ -44,7 +44,7 @@ class SSTable : public Table {
 
         SSTableMetaData();
 
-        void serializeImpl(ostream& os) &&;
+        void serializeImpl(ostream& os) const&;
         SSTableMetaData deserializeImpl(istream& is) &&;
 
         friend ostream& operator<<(ostream& os,

@@ -27,12 +27,15 @@ optional<Table::mapped_type> SSTableIndex::seek(
     if (!potentialBlockPos.has_value()) {
         return {};
     }
+
     // Load the block from file.
     auto fs = getFileStream(m_ssTableFileName, ios::in);
+
     Table::value_type partialSSTable =
-        SerializationWrapper<Table::value_type>().deserialize(
+        DeserializationWrapper<Table::value_type>{}(
             fs, potentialBlockPos.value().first,
             potentialBlockPos.value().second);
+
     const auto cit = partialSSTable.find(key);
     if (cit == partialSSTable.end()) {
         return {};
@@ -73,8 +76,6 @@ optional<pair<ios::pos_type, ios::pos_type>> SSTableIndex::getPotentialBlockPos(
             return make_pair(prev(cit)->second, cit->second);
         }
     }
-    // TODO: @mli: SSTableIndex should keep track of the file name that's
-    // generated.
     log::debug("Key: ", key, " not found in SSTable: ", m_ssTableFileName);
     return {};
 }

@@ -8,6 +8,8 @@
 #include <array>
 #include <concepts>
 #include <iostream>
+#include <string>
+#include <variant>
 #include <vector>
 
 #include "db_concepts.h"
@@ -46,59 +48,112 @@ namespace projectdb {
 // If we get compile error complaining that SerializationWrapper is undefined,
 // it means that we are calling SerializationWrapper on sth that does not match
 // any of the specilization below.
-template <typename T>
-class SerializationWrapper;
 
-template <Trivial T>
-class SerializationWrapper<T> {
+namespace impl {
+
+template <typename T>
+class SerializationWrapperBase {
    public:
     using value_type = T;
 
-    SerializationWrapper() = default;
-    explicit SerializationWrapper(T t) : m_t(move(t)){};
+   protected:
+    explicit SerializationWrapperBase(const T& t) : m_t(&t) {}
+    explicit SerializationWrapperBase(T&& t) : m_t(move(t)) {}
+    // https://www.codesynthesis.com/~boris/blog/2012/07/24/const-rvalue-references/
+    // Prevent const rvalue ref to accidentally bind to const T& ctor.
+    explicit SerializationWrapperBase(const T&& t) = delete;
 
-    void serialize(ostream& os) && {
-        //        log::debug("Serializing Trivial data: ", m_t);
-        array<char, sizeof(T)> buf;
-        copy(reinterpret_cast<const char*>(&m_t),
-             reinterpret_cast<const char*>(&m_t) + sizeof(T), buf.begin());
-        os.write(buf.data(), buf.size());
-        if (!os) {
-            log::errorAndThrow("Failed to serialize trivial data: ", m_t);
+    const T& getCRefT() const {
+        if (holds_alternative<const T*>(m_t)) {
+            return *(get<const T*>(m_t));
+        } else {
+            return get<const T>(m_t);
         }
     }
 
-    T deserialize(istream& is) && {
+   private:
+    const variant<const T*, const T> m_t;
+};
+
+}  // namespace impl
+
+template <typename T>
+class SerializationWrapper : public impl::SerializationWrapperBase<T> {
+    static_assert(sizeof(T) == -1,
+                  "No specialization for SerializationWrapper found for type!");
+};
+template <typename T>
+class DeserializationWrapper {
+    static_assert(
+        sizeof(T) == -1,
+        "No specialization for DeserializationWrapper found for type!");
+};
+
+template <Trivial T>
+class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
+   public:
+    // NOTE: @mli: We can't pass forward<const T>(t) to
+    // SerializationWrapperBase, since forward is just static_cast<T&&>, as a
+    // result, it only makes sense for forwarding a universal reference.
+    // https://stackoverflow.com/questions/8526598/how-does-stdforward-work
+    // In this use case, T is already deducted together with the class
+    // instantiation.
+    explicit SerializationWrapper(const T& t)
+        : impl::SerializationWrapperBase<T>(t){};
+    explicit SerializationWrapper(T&& t)
+        : impl::SerializationWrapperBase<T>(move(t)) {}
+
+    void operator()(ostream& os) && {
+        const T& t = this->getCRefT();
+        array<char, sizeof(T)> buf;
+        copy(reinterpret_cast<const char*>(&t),
+             reinterpret_cast<const char*>(&t) + sizeof(T), buf.begin());
+        os.write(buf.data(), buf.size());
+        if (!os) {
+            throw DbException("Invalid stream encountered!");
+        }
+    }
+};
+
+template <Trivial T>
+class DeserializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    T operator()(istream& is) && {
         T rtn;
         is.read(reinterpret_cast<char*>(&rtn), sizeof(T));
         if (!is) {
-            log::errorAndThrow("Failed to deserialize trivial data!");
+            throw DbException("Invalid stream encountered!");
         }
-        //        log::debug("Successfully deserialized blob into Trivial data:
-        //        ", rtn);
         return rtn;
     }
-
-    T m_t{};
 };
 
 template <SerializableUserDefinedType T>
-class SerializationWrapper<T> {
+class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
    public:
-    using value_type = T;
+    explicit SerializationWrapper(const T& t)
+        : impl::SerializationWrapperBase<T>(t){};
+    explicit SerializationWrapper(T&& t)
+        : impl::SerializationWrapperBase<T>(move(t)) {}
 
-    SerializationWrapper() = default;
-    explicit SerializationWrapper(T t) : m_t(move(t)) {}
-
-    void serialize(ostream& os) && {
-        log::debug("Serializing Serializable data: ", m_t);
-        move(m_t).serializeImpl(os);
+    void operator()(ostream& os) && {
+        const T& t = this->getCRefT();
+        log::debug("Serializing Serializable data: ", t);
+        t.serializeImpl(os);
         if (!os) {
             log::errorAndThrow("Failed to serialize Serializable data!");
         }
     }
+};
 
-    T deserialize(istream& is) && {
+template <SerializableUserDefinedType T>
+class DeserializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    T operator()(istream& is) && {
         auto rtn = T().deserializeImpl(is);
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
@@ -107,20 +162,19 @@ class SerializationWrapper<T> {
                    rtn);
         return rtn;
     }
-
-    T m_t{};
 };
 
 template <SerializablePair T>
-class SerializationWrapper<T> {
+class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
    public:
-    using value_type = T;
+    explicit SerializationWrapper(const T& t)
+        : impl::SerializationWrapperBase<T>(t){};
+    explicit SerializationWrapper(T&& t)
+        : impl::SerializationWrapperBase<T>(move(t)) {}
 
-    SerializationWrapper() = default;
-    explicit SerializationWrapper(T t) : m_t(move(t)){};
-
-    void serialize(ostream& os) && {
-        log::debug("Serializing Pair data: ", m_t);
+    void operator()(ostream& os) && {
+        const T& t = this->getCRefT();
+        log::debug("Serializing Pair data: ", t);
         // Serialize .first and .second.
         /**
          * NOTE: @mli:
@@ -136,81 +190,89 @@ class SerializationWrapper<T> {
          * const in here.
          */
         SerializationWrapper<
-            typename remove_const<typename T::first_type>::type>(
-            move(m_t.first))
-            .serialize(os);
-        SerializationWrapper<typename T::second_type>(move(m_t.second))
-            .serialize(os);
+            typename remove_const<typename T::first_type>::type>(t.first)(os);
+        SerializationWrapper<typename T::second_type>(t.second)(os);
     }
+};
 
-    T deserialize(istream& is) && {
+template <SerializablePair T>
+class DeserializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    T operator()(istream& is) && {
         // Deserialize .first and .second.
-        typename T::first_type first =
-            SerializationWrapper<
-                typename remove_const<typename T::first_type>::type>()
-                .deserialize(is);
+        typename T::first_type first = DeserializationWrapper<
+            typename remove_const<typename T::first_type>::type>()(is);
         typename T::second_type second =
-            SerializationWrapper<typename T::second_type>().deserialize(is);
+            DeserializationWrapper<typename T::second_type>()(is);
         T rtn{first, second};
         log::debug("Successfully deserialized blob into Pair data: ", rtn);
         return rtn;
     }
-
-    T m_t{};
 };
 
-// TODO: @mli: Test if it's possible to deserialize a given stream of value_type
-// without knowing the size. This could be needed if we want to just load part
-// of the sstable into memory, given that we have index.
 template <SerializableContainer T>
-class SerializationWrapper<T> {
+class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
    public:
-    using value_type = T;
+    explicit SerializationWrapper(const T& t)
+        : impl::SerializationWrapperBase<T>(t){};
+    explicit SerializationWrapper(T&& t)
+        : impl::SerializationWrapperBase<T>(move(t)) {}
 
-    SerializationWrapper() = default;
-    explicit SerializationWrapper(T t) : m_t(move(t)){};
-
-    void serialize(ostream& os) && {
-        log::debug("Serializing SerializableContainer data: ", m_t);
-        SerializationWrapper<size_type>(m_t.size()).serialize(os);
+    void operator()(ostream& os) && {
+        const T& t = this->getCRefT();
+        log::debug("Serializing SerializableContainer data: ", t);
+        SerializationWrapper<size_type>(t.size())(os);
         // Then, serialize each element in container.
-        for (auto it = m_t.begin(); it != m_t.end(); it++) {
-            SerializationWrapper<container_value_type>(move(*it)).serialize(os);
+        for (auto it = t.begin(); it != t.end(); it++) {
+            // NOTE: @mli: Can't use (*it) here because of most vexing parse.
+            SerializationWrapper<container_value_type>{*it}(os);
         }
     }
 
     template <typename InvocableT>
-    requires IndexBuilderInvocable<InvocableT, T> void serialize(
+    requires IndexBuilderInvocable<InvocableT, T> void operator()(
         ostream& os, InvocableT tryBuildIndex) && {
-        log::debug("Serializing SerializableContainer data: ", m_t);
-        SerializationWrapper<size_type>(m_t.size()).serialize(os);
+        const T& t = this->getCRefT();
+        log::debug("Serializing SerializableContainer data: ", t);
+        SerializationWrapper<size_type>(t.size())(os);
         streamsize currBlockSize = 0;
         auto prevPos = os.tellp();
         auto currPos = prevPos;
         // Then, serialize each element in container.
-        for (auto it = m_t.begin(); it != m_t.end(); it++) {
+        for (auto it = t.begin(); it != t.end(); it++) {
             bool isFirstOrLastEntry =
-                ((it == m_t.begin()) || (distance(it, m_t.end()) == 1));
+                ((it == t.begin()) || (distance(it, t.end()) == 1));
             bool indexAdded =
                 tryBuildIndex(*it, currPos, currBlockSize, isFirstOrLastEntry);
             // Reset the block size accumulator if we just add an index.
             if (indexAdded) {
                 currBlockSize = 0;
             }
-            SerializationWrapper<container_value_type>(move(*it)).serialize(os);
+            SerializationWrapper<container_value_type>{*it}(os);
             prevPos = currPos;
             currPos = os.tellp();
             currBlockSize += currPos - prevPos;
         }
     }
 
-    T deserialize(istream& is) && {
+   private:
+    using container_value_type = typename T::value_type;
+    using size_type = typename T::size_type;
+};
+
+template <SerializableContainer T>
+class DeserializationWrapper<T> {
+   public:
+    using value_type = T;
+
+    T operator()(istream& is) && {
         T rtn;
-        size_type size = SerializationWrapper<size_type>().deserialize(is);
+        size_type size = DeserializationWrapper<size_type>{}(is);
         for (size_type i = 0; i < size; i++) {
-            rtn.insert(
-                rtn.end(),
-                SerializationWrapper<container_value_type>().deserialize(is));
+            rtn.insert(rtn.end(),
+                       DeserializationWrapper<container_value_type>{}(is));
         }
         log::debug(
             "Successfully deserialized blob into SerializableContainer data: ",
@@ -220,16 +282,15 @@ class SerializationWrapper<T> {
 
     template <typename InvocableT>
     requires IndexBuilderInvocable<InvocableT, T> T
-    deserialize(istream& is, InvocableT tryBuildIndex) && {
+    operator()(istream& is, InvocableT tryBuildIndex) && {
         T rtn;
-        size_type size = SerializationWrapper<size_type>().deserialize(is);
+        size_type size = DeserializationWrapper<size_type>{}(is);
         streamsize currBlockSize = 0;
         auto prevPos = is.tellg();
         auto currPos = prevPos;
         for (size_type i = 0; i < size; i++) {
-            rtn.insert(
-                rtn.end(),
-                SerializationWrapper<container_value_type>().deserialize(is));
+            rtn.insert(rtn.end(),
+                       DeserializationWrapper<container_value_type>{}(is));
             bool isFirstOrLastEntry = ((i == 0) || (i == size - 1));
             prevPos = currPos;
             currPos = is.tellg();
@@ -246,14 +307,13 @@ class SerializationWrapper<T> {
         return rtn;
     }
 
-    T deserialize(istream& is, ios::pos_type start, ios::pos_type end) {
+    T operator()(istream& is, ios::pos_type start, ios::pos_type end) {
         T rtn;
         is.seekg(start);
         auto currPos = start;
         while (currPos < end) {
-            rtn.insert(
-                rtn.end(),
-                SerializationWrapper<container_value_type>().deserialize(is));
+            rtn.insert(rtn.end(),
+                       DeserializationWrapper<container_value_type>{}(is));
             currPos = is.tellg();
         }
         log::debug("Successfully deserialized entries in pos range [", start,
@@ -261,13 +321,9 @@ class SerializationWrapper<T> {
         return rtn;
     }
 
-    // TODO: @mli: Add deserialize several entries to a container.
-
-    T m_t{};
-
    private:
     using container_value_type = typename T::value_type;
-    using size_type = decltype(m_t.size());
+    using size_type = typename T::size_type;
 };
 
 }  // namespace projectdb

@@ -21,7 +21,7 @@ concept SerializableUserDefinedType = requires(T t, ostream& os, istream& is) {
     // T needs to be default constructable.
     { T() }
     ->same_as<T>;
-    { move(t).serializeImpl(os) }
+    { const_cast<T*>(&t)->serializeImpl(os) }
     ->same_as<void>;
     { move(t).deserializeImpl(is) }
     ->same_as<T>;
@@ -49,6 +49,7 @@ template <typename T>
 concept Container = requires(T t, typename T::iterator it,
                              typename T::value_type val) {
     typename T::value_type;
+    typename T::size_type;
     typename T::iterator;
     typename T::const_iterator;
     { t.begin() }

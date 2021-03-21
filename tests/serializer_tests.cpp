@@ -115,7 +115,7 @@ using SerializationWrapperTypes =
 template <typename T>
 class SerializationWrapperTestFixture : public ::testing::Test {
    public:
-    static SerializationWrapper<T> m_serializationWrapper;
+    static T m_t;
 };
 
 TYPED_TEST_SUITE(SerializationWrapperTestFixture, SerializationWrapperTypes);
@@ -125,52 +125,38 @@ TYPED_TEST_SUITE(SerializationWrapperTestFixture, SerializationWrapperTypes);
 TYPED_TEST(SerializationWrapperTestFixture, RoundtripTest) {
     stringstream ss;
     // Make a copy of m_t because it might be moved latter.
-    auto expected =
-        SerializationWrapperTestFixture<TypeParam>::m_serializationWrapper.m_t;
-    EXPECT_NO_THROW(
-        move(SerializationWrapperTestFixture<TypeParam>::m_serializationWrapper)
-            .serialize(ss));
+    auto expected = SerializationWrapperTestFixture<TypeParam>::m_t;
+    EXPECT_NO_THROW(SerializationWrapper<TypeParam>{expected}(ss));
     TypeParam deserialized;
-    EXPECT_NO_THROW(deserialized =
-                        SerializationWrapper<TypeParam>().deserialize(ss));
+    EXPECT_NO_THROW(deserialized = DeserializationWrapper<TypeParam>{}(ss));
     EXPECT_EQ(expected, deserialized);
 }
 
 // https://stackoverflow.com/questions/8507385/google-test-is-there-a-way-to-combine-a-test-which-is-both-type-parameterized-a
 template <>
-SerializationWrapper<int>
-    SerializationWrapperTestFixture<int>::m_serializationWrapper{-5};
+int SerializationWrapperTestFixture<int>::m_t{-5};
 template <>
-SerializationWrapper<unsigned>
-    SerializationWrapperTestFixture<unsigned>::m_serializationWrapper{5};
+unsigned SerializationWrapperTestFixture<unsigned>::m_t{5};
 template <>
-SerializationWrapper<double>
-    SerializationWrapperTestFixture<double>::m_serializationWrapper{5.5};
+double SerializationWrapperTestFixture<double>::m_t{5.5};
 template <>
-SerializationWrapper<bool>
-    SerializationWrapperTestFixture<bool>::m_serializationWrapper{true};
+bool SerializationWrapperTestFixture<bool>::m_t{true};
 template <>
-SerializationWrapper<Value::Type>
-    SerializationWrapperTestFixture<Value::Type>::m_serializationWrapper{
-        Value::Type::TOMBSTONE_VALUE};
+Value::Type SerializationWrapperTestFixture<Value::Type>::m_t{
+    Value::Type::TOMBSTONE_VALUE};
 template <>
-SerializationWrapper<TrivialStruct>
-    SerializationWrapperTestFixture<TrivialStruct>::m_serializationWrapper{
-        TrivialStruct(1, 2)};
+TrivialStruct SerializationWrapperTestFixture<TrivialStruct>::m_t{
+    TrivialStruct(1, 2)};
 
 /**
  * TODO: @mli: How do we make it possible to have multiple values for Key for
  * testing? Maybe we need another TYPED_TEST that takes vector<T> as types?
  */
 template <>
-SerializationWrapper<Key>
-    SerializationWrapperTestFixture<Key>::m_serializationWrapper{
-        Key("Hello World Key!")};
+Key SerializationWrapperTestFixture<Key>::m_t{Key("Hello World Key!")};
 
 template <>
-SerializationWrapper<Value>
-    SerializationWrapperTestFixture<Value>::m_serializationWrapper{
-        Value("Hello World Value!")};
+Value SerializationWrapperTestFixture<Value>::m_t{Value("Hello World Value!")};
 
 }  // namespace test
 
