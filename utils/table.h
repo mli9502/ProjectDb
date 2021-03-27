@@ -17,7 +17,6 @@ namespace projectdb {
 /**
  * The class Table
  */
->>>>>>> main
 class Table {
    public:
     using key_type = Key;

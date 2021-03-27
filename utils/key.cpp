@@ -14,10 +14,16 @@ Key::Key(value_type key) : m_key(move(key)) {}
 
 Key::value_type Key::key() const { return m_key; }
 
+/**
+ * 
+ */
 void Key::serializeImpl(ostream& os) const& {
     SerializationWrapper<value_type>{m_key}(os);
 }
 
+/**
+ *
+ */
 Key Key::deserializeImpl(istream& is) && {
     m_key = DeserializationWrapper<value_type>{}(is);
     return move(*this);
