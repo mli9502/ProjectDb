@@ -13,6 +13,10 @@ using namespace std;
 
 namespace projectdb {
 
+/**
+* The class MemTable holds the representation of the database
+* in memory.
+*/
 class MemTable : public Table {
    public:
     MemTable();

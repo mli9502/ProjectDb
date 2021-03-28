@@ -76,6 +76,9 @@ using namespace projectdb;
 
 template <>
 struct less<Key> {
+/**
+* Comparison for the class Key that uses the key itself.
+*/
     bool operator()(const Key& lhs, const Key& rhs) const {
         return lhs.m_key < rhs.m_key;
     }
