@@ -12,6 +12,12 @@ using namespace std;
 
 namespace projectdb {
 
+/**
+* The class Value represents the value corresponding to a Key in the database. 
+* The actual value itself is held in the class 
+* and supports serialization to disk and deseralization from disk.
+* It also holds a TOMBSTONE_VALUE for removed/empty values.
+*/
 class Value {
    public:
     using value_type = string;

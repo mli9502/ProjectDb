@@ -15,7 +15,7 @@ namespace projectdb {
 MemTable::MemTable() : Table() { m_table = make_shared<value_type>(); }
 
 /**
-* Gets the entry in the map where the key maps to.
+* Gets the entry (with potentiall empty value) in the map where the key maps to.
 */
 optional<MemTable::mapped_type> MemTable::getValueEntry(
     const key_type& key) const {
@@ -28,7 +28,7 @@ optional<MemTable::mapped_type> MemTable::getValueEntry(
 }
 
 /**
-* Gets the value of the entry in the map where the key maps to.
+* Gets the value of the entry (if both exist) in the map where the key maps to.
 */
 optional<MemTable::mapped_type::value_type> MemTable::getValue(
     const key_type& key) const {
