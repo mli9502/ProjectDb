@@ -15,7 +15,8 @@ using namespace std;
 
 namespace projectdb {
 /**
- * The class Table holds a shared pointer to the database table, which is a map container.
+ * The class Table holds a shared pointer to the database table, which is a map
+ * container.
  */
 class Table {
    public:

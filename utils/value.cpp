@@ -15,13 +15,13 @@ Value::Value(value_type value)
     : m_type(Type::STRING_VALUE), m_value(move(value)) {}
 
 /**
-* Check if the value is empty.
-*/
+ * Check if the value is empty.
+ */
 bool Value::isTombstoneValue() const { return m_type == Type::TOMBSTONE_VALUE; }
 
 /**
-* Retrieves the actual value from the Value.
-*/
+ * Retrieves the actual value from the Value.
+ */
 Value::value_type Value::value() const {
     if (isTombstoneValue()) {
         log::errorAndThrow("Trying to access value for TOMBSTONE!");
@@ -30,17 +30,17 @@ Value::value_type Value::value() const {
 }
 
 /**
-* Calls the wrapper to serialize the value to the out stream "os".
-*/
+ * Calls the wrapper to serialize the value to the out stream "os".
+ */
 void Value::serializeImpl(ostream& os) const& {
     SerializationWrapper<Value::Type>{m_type}(os);
     SerializationWrapper<value_type>{m_value}(os);
 }
 
 /**
-* Calls the wrapper to deserialize the value itself from in stream "is",
-* set it for the Value, and return the Value.
-*/
+ * Calls the wrapper to deserialize the value itself from in stream "is",
+ * set it for the Value, and return the Value.
+ */
 Value Value::deserializeImpl(istream& is) && {
     m_type = DeserializationWrapper<Value::Type>{}(is);
     m_value = DeserializationWrapper<value_type>{}(is);

@@ -20,10 +20,10 @@ namespace projectdb {
 class SSTableIndex;
 
 /**
-* The MemTableQueue holds a queue for objects of class MemTable.
-* It maintains the order the MemTables are flushed to disk
-* when executing concurrent threads.
-*/
+ * The MemTableQueue holds a queue for objects of class MemTable.
+ * It maintains the order the MemTables are flushed to disk
+ * when executing concurrent threads.
+ */
 class MemTableQueue {
    public:
     MemTableQueue();

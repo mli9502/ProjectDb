@@ -101,9 +101,9 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
         : impl::SerializationWrapperBase<T>(t){};
     explicit SerializationWrapper(T&& t)
         : impl::SerializationWrapperBase<T>(move(t)) {}
-/**
-* Serializes the wrapper value to out stream "os".
-*/
+    /**
+     * Serializes the wrapper value to out stream "os".
+     */
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
         array<char, sizeof(T)> buf;
@@ -121,9 +121,9 @@ class DeserializationWrapper<T> {
    public:
     using value_type = T;
 
-/**
-* Deserializes the in stream "is" and return its value.
-*/
+    /**
+     * Deserializes the in stream "is" and return its value.
+     */
     T operator()(istream& is) && {
         T rtn;
         is.read(reinterpret_cast<char*>(&rtn), sizeof(T));
