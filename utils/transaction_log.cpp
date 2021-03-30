@@ -3,3 +3,16 @@
 //
 
 #include "transaction_log.h"
+
+#include "memtable.h"
+
+namespace projectdb {
+
+// TODO: @mli: Initialize m_fs in here.
+TransactionLog::TransactionLog() {}
+
+// string TransactionLog::genFileName() {
+//    return
+//}
+
+}  // namespace projectdb

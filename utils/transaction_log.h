@@ -5,24 +5,47 @@
 #ifndef MAIN_TRANSACTION_LOG_H
 #define MAIN_TRANSACTION_LOG_H
 
+#include <fstream>
+
+#include "db_concepts.h"
 #include "key.h"
+#include "serializer.h"
 #include "value.h"
 
 namespace projectdb {
 
 enum class DbTransactionType { GET, SET, REMOVE };
 
-// template <DbTransactionType T>
-// class Transaction {
-//    static_assert(sizeof(T) == -1, "Transaction type not supported for
-//    TransactionLog!");
-//};
-//
-// template <>
-// class Transaction<DbTransactionType::SET> {
-// public:
-//    Transaction()
-//};
+class MemTable;
+
+class TransactionLog {
+   public:
+    TransactionLog();
+    TransactionLog(string_view fileName);
+
+    template <Serializable... Ts>
+    void logTransaction(DbTransactionType type, const Ts&... args) {
+        SerializationWrapper<DbTransactionType>{type}(m_fs);
+        logTransactionImpl(args...);
+    }
+
+    void populateMemTable(MemTable* memTable);
+
+   private:
+    template <Serializable T>
+    void logTransactionImpl(const T& arg) {
+        SerializationWrapper<T>{arg}(m_fs);
+    }
+    template <Serializable T, Serializable... Ts>
+    void logTransactionImpl(const T& arg, const Ts&... args) {
+        SerializationWrapper<T>{arg}(m_fs);
+        logTransactionImpl(args...);
+    }
+
+    static string genFileName();
+
+    fstream m_fs;
+};
 
 }  // namespace projectdb
 

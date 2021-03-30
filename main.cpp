@@ -8,6 +8,7 @@
 #include "memtable_queue.h"
 #include "serializer.h"
 #include "sstable.h"
+#include "sstable_index.h"
 #include "table.h"
 #include "value.h"
 
@@ -70,6 +71,27 @@ int main() {
         cnt += 1;
         Key key("6");
         auto tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        key = Key("8");
+        tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        key = Key("1");
+        tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        key = Key("2");
+        tmp = index.seek(key);
         if (!tmp.has_value()) {
             log::debug(key, " not found!");
         } else {

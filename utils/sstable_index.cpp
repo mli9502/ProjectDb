@@ -21,19 +21,26 @@ void SSTableIndex::addIndex(Table::key_type key, ios::pos_type pos) {
 
 void SSTableIndex::setEofPos(ios::pos_type eofPos) { m_eofPos = eofPos; }
 
-optional<Table::mapped_type> SSTableIndex::seek(
-    const Table::key_type& key) const {
+optional<Table::mapped_type> SSTableIndex::seek(const Table::key_type& key) {
+    // NOTE: @mli: We can't initialize m_ifs in ctor, because SSTableIndex is
+    // not the one that writes the data to file. It seems that if we open an
+    // ifstream, then some other code opens the same file as ofstream and write
+    // stuff, our already-opened ifstream will become invalid. As a result, we
+    // keep a unique_ptr of ifstream, and only try to open it when seek is
+    // called, since at this point, no one should be writing to the file
+    // anymore.
+    if (!m_ifs) {
+        m_ifs = make_unique<fstream>(
+            getFileStream(m_ssTableFileName, ios_base::in));
+    }
     auto potentialBlockPos = getPotentialBlockPos(key);
     if (!potentialBlockPos.has_value()) {
         return {};
     }
 
-    // Load the block from file.
-    auto fs = getFileStream(m_ssTableFileName, ios::in);
-
     Table::value_type partialSSTable =
         DeserializationWrapper<Table::value_type>{}(
-            fs, potentialBlockPos.value().first,
+            *m_ifs, potentialBlockPos.value().first,
             potentialBlockPos.value().second);
 
     const auto cit = partialSSTable.find(key);

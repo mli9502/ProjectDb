@@ -18,4 +18,4 @@ add_library(utils STATIC
         sstable.cpp
         table.cpp
         system_utils.cpp
-        transaction_log.cpp transaction.cpp transaction.h)
+        transaction_log.cpp transaction.cpp transaction.h sstable_ops.cpp sstable_ops.h)

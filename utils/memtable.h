@@ -13,9 +13,14 @@ using namespace std;
 
 namespace projectdb {
 
-class MemTable : public Table {
+class MemTable {
    public:
+    using key_type = Table::key_type;
+    using mapped_type = Table::mapped_type;
+    using value_type = Table::value_type;
+
     MemTable();
+
     // Returns the mapped_type (Value).
     // Even if the value is deleted, return will NOT be empty because of
     // TOMBSTONE.
@@ -39,8 +44,13 @@ class MemTable : public Table {
 
     [[nodiscard]] bool needsFlushToDisk() const;
 
+    [[nodiscard]] shared_ptr<Table> getTable() const;
+
     friend ostream& operator<<(ostream& os, const MemTable& memTable);
     friend bool operator==(const MemTable& lhs, const MemTable& rhs);
+
+   private:
+    shared_ptr<Table> m_table;
 };
 
 ostream& operator<<(ostream& os, const MemTable& memTable);

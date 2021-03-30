@@ -4,10 +4,6 @@
 
 #include "system_utils.h"
 
-#ifdef __linux__
-#include <unistd.h>
-#endif
-
 #include <filesystem>
 
 #include "db_config.h"
@@ -15,15 +11,21 @@
 
 namespace projectdb {
 
-int getProcessId() {
-#ifdef __linux__
-    return getpid();
-#else
-    log::info(
-        "Including PID in sstable file name not support for system other than "
-        "linux for now. Default to 0.");
-    return 0;
-#endif
+namespace {
+string genFileName(unsigned counter, const string& fileType) {
+    return db_config::DB_FILE_PREFIX + "_" + to_string(counter) + "." +
+           fileType;
+}
+}  // namespace
+
+timestamp_unit_type getTimeSinceEpoch() {
+    return chrono::duration_cast<timestamp_unit_type>(
+        chrono::system_clock::now().time_since_epoch());
+}
+
+string genSSTableFileName() {
+    static unsigned ssTableFileCounter = 0;
+    return genFileName(ssTableFileCounter, db_config::SSTABLE_FILE_TYPE);
 }
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
