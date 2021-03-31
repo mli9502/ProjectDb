@@ -12,10 +12,7 @@ namespace projectdb {
 
 namespace test {
 
-class MemTableTestFixture : public MemTable, public ::testing::Test {
-   public:
-    shared_ptr<map<key_type, mapped_type>> getMemTable() { return m_table; }
-};
+class MemTableTestFixture : public MemTable, public ::testing::Test {};
 
 TEST_F(MemTableTestFixture, SetGetRemoveTest) {
     Key key0("key0");

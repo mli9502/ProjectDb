@@ -21,7 +21,6 @@ class MemTable;
 class TransactionLog {
    public:
     TransactionLog();
-    TransactionLog(string_view fileName);
 
     template <Serializable... Ts>
     void logTransaction(DbTransactionType type, const Ts&... args) {
