@@ -18,6 +18,9 @@ namespace projectdb {
 
 MemTableQueue::MemTableQueue() { m_queue.emplace_back(); }
 
+/**
+ * Search through each MemTable in the queue for a key.
+ */
 optional<string> MemTableQueue::get(string_view key) const {
     MemTable::key_type tableKey{string(key)};
     const auto cit =
@@ -30,6 +33,9 @@ optional<string> MemTableQueue::get(string_view key) const {
     return cit->getValue(tableKey);
 }
 
+/**
+ * Set the key value pair in the latest MemTable in the queue.
+ */
 optional<future<SSTableIndex>> MemTableQueue::set(string_view key,
                                                   string_view value) {
     m_queue.back().set(MemTable::key_type{string(key)},
@@ -37,6 +43,10 @@ optional<future<SSTableIndex>> MemTableQueue::set(string_view key,
     return tryLaunchFlushToDisk(m_queue.back());
 }
 
+/**
+ * Set the value corresponding to the given key
+ * in the latest MemTable in the queue.
+ */
 optional<future<SSTableIndex>> MemTableQueue::remove(string_view key) {
     m_queue.back().remove(MemTable::key_type{string(key)});
     return tryLaunchFlushToDisk(m_queue.back());
@@ -44,6 +54,10 @@ optional<future<SSTableIndex>> MemTableQueue::remove(string_view key) {
 
 void MemTableQueue::pop() { m_queue.pop_front(); }
 
+/**
+ * See if the provided MemTable needs to be flush to disk
+ * and tries to if needed.
+ */
 optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
     const MemTable& memTable) {
     if (!memTable.needsFlushToDisk()) {

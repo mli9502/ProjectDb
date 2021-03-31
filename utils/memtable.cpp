@@ -14,6 +14,10 @@ namespace projectdb {
 
 MemTable::MemTable() : m_table(make_shared<Table>()) {}
 
+/**
+ * Gets the entry (with potentiall empty value) in the map where the key maps
+ * to.
+ */
 optional<MemTable::mapped_type> MemTable::getValueEntry(
     const key_type& key) const {
     const auto& table = m_table->get();
@@ -25,6 +29,9 @@ optional<MemTable::mapped_type> MemTable::getValueEntry(
     return cit->second;
 }
 
+/**
+ * Gets the value of the entry (if both exist) in the map where the key maps to.
+ */
 optional<MemTable::mapped_type::value_type> MemTable::getValue(
     const key_type& key) const {
     const auto entry = getValueEntry(key);
@@ -35,12 +42,22 @@ optional<MemTable::mapped_type::value_type> MemTable::getValue(
 }
 
 // https://stackoverflow.com/questions/26261007/why-is-value-taking-setter-member-functions-not-recommended-in-herb-sutters-cpp
+/**
+ * Sets a key value pair for class MemTable.
+ */
 void MemTable::set(const key_type& key, mapped_type value) {
     m_table->get()[key] = move(value);
 }
 
+/**
+ * Clears the value for the given key.
+ */
 void MemTable::remove(const key_type& key) { set(key, mapped_type{}); }
 
+/**
+ * Returns true when current table size exceeds approximate max size
+ * and needs to flush table to disk.
+ */
 bool MemTable::needsFlushToDisk() const {
     unsigned currSizeInBytes = 0;
     const auto& table = m_table->get();
