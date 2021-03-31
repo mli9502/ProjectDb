@@ -23,12 +23,13 @@ class Table {
     using mapped_type = Value;
     using value_type = map<key_type, mapped_type>;
 
-    virtual ~Table() = 0;
+    Table();
 
-    shared_ptr<value_type> getTable() const;
+    [[nodiscard]] const value_type& get() const;
+    [[nodiscard]] value_type& get();
 
    protected:
-    shared_ptr<value_type> m_table;
+    unique_ptr<value_type> m_table;
 };
 
 }  // namespace projectdb

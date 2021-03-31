@@ -9,7 +9,7 @@
 #include <memory>
 #include <string_view>
 
-#include "sstable_index.h"
+#include "system_utils.h"
 #include "table.h"
 
 using namespace std;
@@ -21,56 +21,53 @@ namespace projectdb {
  * new SSTable after merge.
  */
 
-class SSTable : public Table {
+class SSTableMetaData {
    public:
-    SSTable() = default;
-    explicit SSTable(shared_ptr<value_type> table);
+    SSTableMetaData();
 
-    // Flush to disk and build the index.
-    [[nodiscard]] SSTableIndex flushToDisk() const;
-    void loadFromDisk(string_view ssTableFileName,
-                      SSTableIndex* ssTableIndex = nullptr);
+    void init();
 
-    friend ostream& operator<<(ostream& os, const SSTable& ssTable);
-    friend bool operator==(const SSTable& lhs, const SSTable& rhs);
-
-   private:
-    // TODO: @mli: Define a SSTableMetaData class, and implement serialization &
-    // deserialization for it. The MetaData class should for now only contain a
-    // timestamp.
-    class SSTableMetaData {
-       public:
-        using ts_unit_type = chrono::milliseconds;
-
-        SSTableMetaData();
-
-        void serializeImpl(ostream& os) const&;
-        SSTableMetaData deserializeImpl(istream& is) &&;
-
-        friend ostream& operator<<(ostream& os,
-                                   const SSTableMetaData& ssTableMetaData);
-        friend bool operator==(const SSTableMetaData& lhs,
-                               const SSTableMetaData& rhs);
-
-       private:
-        ts_unit_type::rep m_msSinceEpoch;
-    };
-
-    SSTableMetaData m_metaData;
+    void serializeImpl(ostream& os) const&;
+    SSTableMetaData deserializeImpl(istream& is) &&;
 
     friend ostream& operator<<(ostream& os,
                                const SSTableMetaData& ssTableMetaData);
     friend bool operator==(const SSTableMetaData& lhs,
                            const SSTableMetaData& rhs);
+
+   private:
+    timestamp_unit_type::rep m_msSinceEpoch;
+};
+
+ostream& operator<<(ostream& os, const SSTableMetaData& ssTableMetaData);
+bool operator==(const SSTableMetaData& lhs, const SSTableMetaData& rhs);
+
+class SSTable {
+   public:
+    /**
+     * Initialize an empty SSTable.
+     */
+    SSTable();
+    /**
+     * Initialize SSTable with the given table, and SSTableMetaData will be
+     * populated automatically.
+     * @param table
+     */
+    explicit SSTable(shared_ptr<Table> table);
+
+    SSTableMetaData& metaData();
+    const SSTableMetaData& metaData() const;
+
+    Table& table();
+    const Table& table() const;
+
+   private:
+    SSTableMetaData m_metaData;
+    shared_ptr<Table> m_table;
 };
 
 ostream& operator<<(ostream& os, const SSTable& ssTable);
 bool operator==(const SSTable& lhs, const SSTable& rhs);
-
-ostream& operator<<(ostream& os,
-                    const SSTable::SSTableMetaData& ssTableMetaData);
-bool operator==(const SSTable::SSTableMetaData& lhs,
-                const SSTable::SSTableMetaData& rhs);
 
 }  // namespace projectdb
 

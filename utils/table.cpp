@@ -6,8 +6,10 @@
 
 namespace projectdb {
 
-Table::~Table() = default;
+Table::Table() : m_table(make_unique<value_type>()) {}
 
-shared_ptr<Table::value_type> Table::getTable() const { return m_table; }
+const Table::value_type& Table::get() const { return *m_table; }
+
+Table::value_type& Table::get() { return *m_table; }
 
 }  // namespace projectdb
