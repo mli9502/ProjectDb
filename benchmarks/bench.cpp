@@ -4,13 +4,9 @@
 #include <iostream>
 using namespace std;
 
-make_key()
-{
-}
+void make_key() {}
 
-make_value()
-{
-}
+void make_value() {}
 
 void print_db(MemTable db)
 {
