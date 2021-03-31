@@ -25,5 +25,4 @@ void read_csv(string fname, MemTable db)
 	
 	fin.open(fname, ios::in);
 
-	
 }
