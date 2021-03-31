@@ -16,6 +16,6 @@ include_directories(utils)
 add_subdirectory(utils)
 add_subdirectory(tests)
 
-add_executable(${HW_NAME} main.cpp main.cpp)
+add_executable(${HW_NAME} main.cpp main.cpp benchmarks/bench.cpp)
 target_link_libraries(${HW_NAME} PUBLIC utils pthread)
 
