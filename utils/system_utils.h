@@ -17,6 +17,7 @@ using timestamp_unit_type = chrono::milliseconds;
 timestamp_unit_type getTimeSinceEpoch();
 
 string genSSTableFileName();
+string genTransactionLogFileName();
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode);
 

@@ -8,42 +8,45 @@
 #include <fstream>
 
 #include "db_concepts.h"
-#include "key.h"
+#include "memtable.h"
 #include "serializer.h"
-#include "value.h"
 
 namespace projectdb {
 
 enum class DbTransactionType { GET, SET, REMOVE };
 
-class MemTable;
-
-class TransactionLog {
+class TransactionLogWritter {
    public:
-    TransactionLog();
+    TransactionLogWritter(string transactionLogFileName);
 
     template <Serializable... Ts>
-    void logTransaction(DbTransactionType type, const Ts&... args) {
-        SerializationWrapper<DbTransactionType>{type}(m_fs);
-        logTransactionImpl(args...);
+    void write(DbTransactionType type, const Ts&... args) & {
+        SerializationWrapper<DbTransactionType>{type}(m_ofs);
+        writeImpl(args...);
+        // NOTE: @mli: We need to flush here to make sure that records is
+        // flushed to disk right away, instead of needing to wait for m_ofs to
+        // be destructed.
+        m_ofs.flush();
     }
-
-    void populateMemTable(MemTable* memTable);
 
    private:
     template <Serializable T>
-    void logTransactionImpl(const T& arg) {
-        SerializationWrapper<T>{arg}(m_fs);
+    void writeImpl(const T& arg) {
+        SerializationWrapper<T>{arg}(m_ofs);
     }
     template <Serializable T, Serializable... Ts>
-    void logTransactionImpl(const T& arg, const Ts&... args) {
-        SerializationWrapper<T>{arg}(m_fs);
-        logTransactionImpl(args...);
+    void writeImpl(const T& arg, const Ts&... args) {
+        SerializationWrapper<T>{arg}(m_ofs);
+        writeImpl(args...);
     }
 
-    static string genFileName();
+    string m_transactionLogFileName;
+    fstream m_ofs;
+};
 
-    fstream m_fs;
+class TransactionLogLoader {
+   public:
+    static MemTable load(string_view transactionLogFileName);
 };
 
 }  // namespace projectdb

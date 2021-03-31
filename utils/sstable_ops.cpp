@@ -8,6 +8,7 @@
 #include "serializer.h"
 
 namespace projectdb {
+
 SSTableIndex flushSSTable(const SSTable& ssTable) {
     const auto fileName = genSSTableFileName();
 

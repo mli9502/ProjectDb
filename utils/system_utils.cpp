@@ -24,8 +24,13 @@ timestamp_unit_type getTimeSinceEpoch() {
 }
 
 string genSSTableFileName() {
-    static unsigned ssTableFileCounter = 0;
-    return genFileName(ssTableFileCounter, db_config::SSTABLE_FILE_TYPE);
+    return genFileName(db_config::impl::SSTABLE_FILE_COUNTER_BASE++,
+                       db_config::SSTABLE_FILE_TYPE);
+}
+
+string genTransactionLogFileName() {
+    return genFileName(db_config::impl::TRANSACTION_LOG_FILE_COUNTER_BASE++,
+                       db_config::TRANSACTION_LOG_FILE_TYPE);
 }
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
