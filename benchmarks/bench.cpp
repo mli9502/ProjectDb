@@ -21,8 +21,7 @@ void print_db(MemTable db)
  */
 void read_csv(string fname, MemTable db)
 {
-	fstream fin;
-	
-	fin.open(fname, ios::in);
+    fstream fin;
 
+    fin.open(fname, ios::in);
 }
