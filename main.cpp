@@ -8,7 +8,9 @@
 #include "memtable_queue.h"
 #include "serializer.h"
 #include "sstable.h"
+#include "sstable_index.h"
 #include "table.h"
+#include "transaction_log.h"
 #include "value.h"
 
 using namespace std;
@@ -75,9 +77,40 @@ int main() {
         } else {
             log::debug(tmp.value());
         }
+        key = Key("8");
+        tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        key = Key("1");
+        tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
+        key = Key("2");
+        tmp = index.seek(key);
+        if (!tmp.has_value()) {
+            log::debug(key, " not found!");
+        } else {
+            log::debug(tmp.value());
+        }
         //        auto tmpTable =
         //        SerializationWrapper<Table::mapped_type>().deserialize()
     }
+
+    auto txLog = genTransactionLogFileName();
+    auto writter = TransactionLogWritter(txLog);
+    writter.write(DbTransactionType::SET, Key("abc"), Value("bcd"));
+    writter.write(DbTransactionType::SET, Key("cde"), Value("def"));
+    writter.write(DbTransactionType::REMOVE, Key("abc"));
+    writter.write(DbTransactionType::SET, Key("efg"), Value("fgh"));
+
+    auto memTable = TransactionLogLoader::load(txLog);
+    log::debug(memTable);
 
     //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 0;
     //    SSTable sst;

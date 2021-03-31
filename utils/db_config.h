@@ -25,8 +25,21 @@ extern string DB_FILE_PREFIX;
 // Path that database should read/write file from/to.
 extern string DB_FILE_PATH;
 
-// The file type after . .
+// The file extensions.
 extern string SSTABLE_FILE_TYPE;
+extern string TRANSACTION_LOG_FILE_TYPE;
+
+// Variables inside impl namespace are parameters that are updated
+// __internally__ by database. These vars SHOULD NOT be exposed for users to
+// modify.
+namespace impl {
+// The counter that we should start with when writing a new file to disk.
+// These are needed because when recovering from failure or application restart,
+// we need to continue writing files, instead of starting from 0,
+// which will overwrite the old files by mistake.
+extern unsigned SSTABLE_FILE_COUNTER_BASE;
+extern unsigned TRANSACTION_LOG_FILE_COUNTER_BASE;
+}  // namespace impl
 
 }  // namespace db_config
 

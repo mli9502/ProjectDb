@@ -5,13 +5,19 @@
 #ifndef MAIN_SYSTEM_UTILS_H
 #define MAIN_SYSTEM_UTILS_H
 
+#include <chrono>
 #include <fstream>
 
 using namespace std;
 
 namespace projectdb {
 
-int getProcessId();
+using timestamp_unit_type = chrono::milliseconds;
+
+timestamp_unit_type getTimeSinceEpoch();
+
+string genSSTableFileName();
+string genTransactionLogFileName();
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode);
 

@@ -17,6 +17,12 @@ string DB_FILE_PREFIX = "project_db";
 string DB_FILE_PATH = "./projectdb";
 
 string SSTABLE_FILE_TYPE = "sst";
+string TRANSACTION_LOG_FILE_TYPE = "txl";
+
+namespace impl {
+unsigned SSTABLE_FILE_COUNTER_BASE = 0;
+unsigned TRANSACTION_LOG_FILE_COUNTER_BASE = 0;
+}  // namespace impl
 
 }  // namespace db_config
 
