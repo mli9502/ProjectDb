@@ -5,8 +5,14 @@
 #ifndef MAIN_SSTABLE_OPS_H
 #define MAIN_SSTABLE_OPS_H
 
+#include <set>
+#include <string>
+#include <vector>
+
 #include "sstable.h"
 #include "sstable_index.h"
+
+using namespace std;
 
 namespace projectdb {
 
@@ -21,7 +27,16 @@ SSTableIndex flushSSTable(const SSTable& ssTable);
  * @return
  */
 SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex);
-// TODO: @mli: Add function to merge SSTable.
+
+class SSTableMerger {
+   public:
+    SSTableMerger(set<string> ssTableFileNames);
+    vector<SSTableIndex> operator()() &&;
+
+   private:
+    set<string> m_ssTableFileNames;
+};
+
 }  // namespace projectdb
 
 #endif  // MAIN_SSTABLE_OPS_H

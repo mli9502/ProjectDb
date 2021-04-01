@@ -41,6 +41,10 @@ void MemTable::set(const key_type& key, mapped_type value) {
 
 void MemTable::remove(const key_type& key) { set(key, mapped_type{}); }
 
+// TODO: @mli: Might be able to optimize this,
+// MemTable could internally keep a member indicating the size, and update this
+// member everytime set/remove is called. So we don't need to loop through the
+// table everytime we call needsFlushToDisk.
 bool MemTable::needsFlushToDisk() const {
     unsigned currSizeInBytes = 0;
     const auto& table = m_table->get();
