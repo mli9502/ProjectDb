@@ -4,9 +4,6 @@
 
 #include "system_utils.h"
 
-#include <filesystem>
-
-#include "db_config.h"
 #include "log.h"
 
 namespace projectdb {
@@ -26,6 +23,10 @@ timestamp_unit_type getTimeSinceEpoch() {
 string genSSTableFileName() {
     return genFileName(db_config::impl::SSTABLE_FILE_COUNTER_BASE++,
                        db_config::SSTABLE_FILE_TYPE);
+}
+
+string genMergedSSTableFileName(string_view baseFileName) {
+    return string(baseFileName) + "." + db_config::MERGED_SSTABLE_FILE_TYPE;
 }
 
 string genTransactionLogFileName() {

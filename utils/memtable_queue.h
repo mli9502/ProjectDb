@@ -42,6 +42,7 @@ class MemTableQueue {
     void pop();
 
    private:
+    // [old ... new]
     deque<MemTable> m_queue;
 
     [[nodiscard]] optional<future<SSTableIndex>> tryLaunchFlushToDisk(

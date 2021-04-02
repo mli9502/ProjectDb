@@ -27,6 +27,8 @@ unsigned Key::getApproximateSizeInBytes() const {
     return m_key.size() * sizeof(value_type::value_type);
 }
 
+bool Key::operator<(const Key& rhs) const { return m_key < rhs.m_key; }
+
 ostream& operator<<(ostream& os, const Key& key) {
     os << "{ m_key: [" << key.m_key << "] }";
     return os;

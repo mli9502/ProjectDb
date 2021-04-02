@@ -20,4 +20,5 @@ add_library(utils STATIC
         system_utils.cpp
         transaction_log.cpp
         transaction.cpp
-        sstable_ops.cpp)
+        sstable_ops.cpp
+        sstable_index_queue.cpp)

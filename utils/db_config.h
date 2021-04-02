@@ -28,6 +28,18 @@ extern string DB_FILE_PATH;
 // The file extensions.
 extern string SSTABLE_FILE_TYPE;
 extern string TRANSACTION_LOG_FILE_TYPE;
+extern string MERGED_SSTABLE_FILE_TYPE;
+extern string DEPRECATED_FILE_TYPE;
+
+// The number of new SSTables that needs to be added before running a
+// compaction. Compaction runs on these newly added SSTables.
+extern unsigned NUM_SSTABLE_TO_COMPACT;
+// The max size in bytes for a SSTable after compaction.
+// IMPORTANT: This size SHOULD NOT be smaller than
+// MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES. During compaction, at least one merge
+// will be done before checking this size. So it is possible that the actual
+// size of SSTable on disk is larger than this.
+extern unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
 
 // Variables inside impl namespace are parameters that are updated
 // __internally__ by database. These vars SHOULD NOT be exposed for users to

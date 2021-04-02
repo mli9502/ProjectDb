@@ -5,7 +5,7 @@
 #include "memtable_queue.h"
 
 #include <algorithm>
-#include <thread>
+#include <future>
 
 #include "log.h"
 #include "sstable.h"
@@ -18,8 +18,12 @@ namespace projectdb {
 
 MemTableQueue::MemTableQueue() { m_queue.emplace_back(); }
 
+// TODO: @mli: In here we need to return Value.
+// Note that we can't just return optional<string> because it's possible that we
+// get a TOMBSTONE here, in this case, we should just finish instead of continue
+// searching in SSTableIndex.
 optional<string> MemTableQueue::get(string_view key) const {
-    MemTable::key_type tableKey{string(key)};
+    MemTable::key_type tableKey{string{key}};
     const auto cit =
         find_if(m_queue.crbegin(), m_queue.crend(), [&](const auto& memTable) {
             return memTable.getValueEntry(tableKey).has_value();
@@ -58,7 +62,9 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
             "Build SSTable, flush it to disk and build SSTableIndex from "
             "memTable...");
 
-        return flushSSTable(SSTable(memTable.getTable()));
+        return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
+        // TODO: @mli: Add code in the place that handles async return to mark
+        // transaction_log as deprecated.
     });
 }
 

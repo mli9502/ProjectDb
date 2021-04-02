@@ -18,6 +18,11 @@ string DB_FILE_PATH = "./projectdb";
 
 string SSTABLE_FILE_TYPE = "sst";
 string TRANSACTION_LOG_FILE_TYPE = "txl";
+string MERGED_SSTABLE_FILE_TYPE = "merged";
+string DEPRECATED_FILE_TYPE = "deprecated";
+
+unsigned NUM_SSTABLE_TO_COMPACT = 5;
+unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 64 * 1024 * 1024;  // 64 mb
 
 namespace impl {
 unsigned SSTABLE_FILE_COUNTER_BASE = 0;

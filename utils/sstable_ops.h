@@ -11,12 +11,13 @@
 
 #include "sstable.h"
 #include "sstable_index.h"
+#include "sstable_index_queue.h"
 
 using namespace std;
 
 namespace projectdb {
 
-SSTableIndex flushSSTable(const SSTable& ssTable);
+SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName);
 /**
  * loadSSTable is needed under two cases:
  * 1. When we need to merge SSTable due to compression.
@@ -26,16 +27,12 @@ SSTableIndex flushSSTable(const SSTable& ssTable);
  * @param ssTableIndex
  * @return
  */
-SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex);
+SSTable loadSSTable(string_view ssTableFileName,
+                    SSTableIndex* ssTableIndex = nullptr);
 
-class SSTableMerger {
-   public:
-    SSTableMerger(set<string> ssTableFileNames);
-    vector<SSTableIndex> operator()() &&;
-
-   private:
-    set<string> m_ssTableFileNames;
-};
+vector<SSTableIndex> mergeSSTables(
+    SSTableIndexQueue::value_type::iterator begin,
+    SSTableIndexQueue::value_type::iterator end);
 
 }  // namespace projectdb
 
