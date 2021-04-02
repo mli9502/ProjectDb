@@ -12,7 +12,7 @@
 
 namespace projectdb {
 
-MemTable::MemTable() : Table() { m_table = make_shared<value_type>(); }
+MemTable::MemTable() : m_table(make_shared<Table>()) {}
 
 /**
  * Gets the entry (with potentiall empty value) in the map where the key maps
@@ -20,8 +20,9 @@ MemTable::MemTable() : Table() { m_table = make_shared<value_type>(); }
  */
 optional<MemTable::mapped_type> MemTable::getValueEntry(
     const key_type& key) const {
-    const auto cit = m_table->find(key);
-    if (cit == m_table->end()) {
+    const auto& table = m_table->get();
+    const auto cit = table.find(key);
+    if (cit == table.end()) {
         log::debug("Failed to locate key in memTable: ", key);
         return {};
     }
@@ -45,7 +46,7 @@ optional<MemTable::mapped_type::value_type> MemTable::getValue(
  * Sets a key value pair for class MemTable.
  */
 void MemTable::set(const key_type& key, mapped_type value) {
-    (*m_table)[key] = move(value);
+    m_table->get()[key] = move(value);
 }
 
 /**
@@ -59,7 +60,8 @@ void MemTable::remove(const key_type& key) { set(key, mapped_type{}); }
  */
 bool MemTable::needsFlushToDisk() const {
     unsigned currSizeInBytes = 0;
-    for (const auto& [k, v] : *m_table) {
+    const auto& table = m_table->get();
+    for (const auto& [k, v] : table) {
         currSizeInBytes +=
             k.getApproximateSizeInBytes() + v.getApproximateSizeInBytes();
     }
@@ -68,13 +70,15 @@ bool MemTable::needsFlushToDisk() const {
     return currSizeInBytes >= db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
 }
 
+shared_ptr<Table> MemTable::getTable() const { return m_table; }
+
 ostream& operator<<(ostream& os, const MemTable& memTable) {
-    os << "{ m_table: [" << *(memTable.m_table) << "] }";
+    os << "{ m_table: [" << memTable.m_table->get() << "] }";
     return os;
 }
 
 bool operator==(const MemTable& lhs, const MemTable& rhs) {
-    return *(lhs.m_table) == *(rhs.m_table);
+    return lhs.m_table->get() == rhs.m_table->get();
 }
 
 }  // namespace projectdb
