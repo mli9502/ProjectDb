@@ -13,6 +13,10 @@ using namespace std;
 
 namespace projectdb {
 
+/**
+ * The class MemTable holds the representation of the database
+ * in memory.
+ */
 class MemTable {
    public:
     using key_type = Table::key_type;

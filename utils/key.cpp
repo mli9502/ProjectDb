@@ -14,10 +14,17 @@ Key::Key(value_type key) : m_key(move(key)) {}
 
 Key::value_type Key::key() const { return m_key; }
 
+/**
+ * Calls the wrapper to serializes the key to out stream "os".
+ */
 void Key::serializeImpl(ostream& os) const& {
     SerializationWrapper<value_type>{m_key}(os);
 }
 
+/**
+ * Calls the wrapper to deserialize the key itself from in stream "is",
+ * set it for its class Key, and return its class Key.
+ */
 Key Key::deserializeImpl(istream& is) && {
     m_key = DeserializationWrapper<value_type>{}(is);
     return move(*this);
