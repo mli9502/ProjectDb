@@ -23,8 +23,7 @@ class MemTableQueue {
    public:
     MemTableQueue();
     // https://abseil.io/tips/1
-    [[nodiscard]] optional<string> get(string_view key) const;
-    // TODO: @mli: set and remove will return an optional of future<>.
+    [[nodiscard]] optional<MemTable::mapped_type> get(string_view key) const;
     // https://stackoverflow.com/questions/14222899/exception-propagation-and-stdfuture
     [[nodiscard]] optional<future<SSTableIndex>> set(string_view key,
                                                      string_view value);

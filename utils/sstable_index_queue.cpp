@@ -33,8 +33,6 @@ optional<future<vector<SSTableIndex>>> SSTableIndexQueue::insert(
     return tryLaunchCompaction();
 }
 
-// TODO: @mli: Before running compaction, need to check that
-// NUM_SSTABLE_TO_COMPACT is NOT 0, since update will NOT work when it's 0.
 void SSTableIndexQueue::update(
     vector<SSTableIndex>&& ssTableIndexAfterCompaction) {
     if (db_config::NUM_SSTABLE_TO_COMPACT <= 0) {

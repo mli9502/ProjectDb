@@ -19,14 +19,14 @@ namespace projectdb {
 MemTableQueue::MemTableQueue() { m_queue.emplace_back(); }
 
 // TODO: @mli: In here we need to return Value.
-// Note that we can't just return optional<string> because it's possible that we
-// get a TOMBSTONE here, in this case, we should just finish instead of continue
-// searching in SSTableIndex.
-optional<string> MemTableQueue::get(string_view key) const {
+// NOTE: @mli: We can't just return optional<string> because it's possible that
+// we get a TOMBSTONE here, in this case, we should just finish instead of
+// continue searching in SSTableIndex.
+optional<MemTable::mapped_type> MemTableQueue::get(string_view key) const {
     MemTable::key_type tableKey{string{key}};
     const auto cit =
         find_if(m_queue.crbegin(), m_queue.crend(), [&](const auto& memTable) {
-            return memTable.getValueEntry(tableKey).has_value();
+            return memTable.getValue(tableKey).has_value();
         });
     if (cit == m_queue.crend()) {
         return {};

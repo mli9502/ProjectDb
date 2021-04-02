@@ -14,8 +14,7 @@ namespace projectdb {
 
 MemTable::MemTable() : m_table(make_shared<Table>()) {}
 
-optional<MemTable::mapped_type> MemTable::getValueEntry(
-    const key_type& key) const {
+optional<MemTable::mapped_type> MemTable::getValue(const key_type& key) const {
     const auto& table = m_table->get();
     const auto cit = table.find(key);
     if (cit == table.end()) {
@@ -23,15 +22,6 @@ optional<MemTable::mapped_type> MemTable::getValueEntry(
         return {};
     }
     return cit->second;
-}
-
-optional<MemTable::mapped_type::value_type> MemTable::getValue(
-    const key_type& key) const {
-    const auto entry = getValueEntry(key);
-    if (!entry.has_value() || entry.value().isTombstoneValue()) {
-        return {};
-    }
-    return entry.value().value();
 }
 
 // https://stackoverflow.com/questions/26261007/why-is-value-taking-setter-member-functions-not-recommended-in-herb-sutters-cpp
