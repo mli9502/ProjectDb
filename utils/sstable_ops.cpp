@@ -121,8 +121,6 @@ vector<SSTableIndex> mergeSSTables(
             "NUM_SSTABLE_TO_COMPACT > 0!");
     }
     auto currSSTableFileName = curr->getSSTableFileName();
-    auto currMergedTableFileName =
-        genMergedSSTableFileName(currSSTableFileName);
     unique_ptr<SSTable> currTable =
         make_unique<SSTable>(loadSSTable(currSSTableFileName));
     auto currTableSize = getFileSizeInBytes(currSSTableFileName);
@@ -150,8 +148,6 @@ vector<SSTableIndex> mergeSSTables(
             curr = next;
             next++;
             currSSTableFileName = curr->getSSTableFileName();
-            currMergedTableFileName =
-                genMergedSSTableFileName(currSSTableFileName);
             currTable = make_unique<SSTable>(loadSSTable(currSSTableFileName));
             currTableSize = getFileSizeInBytes(currSSTableFileName);
 
