@@ -17,7 +17,10 @@ enum class DbTransactionType { GET, SET, REMOVE };
 
 class TransactionLogWritter {
    public:
+    TransactionLogWritter();
     TransactionLogWritter(string transactionLogFileName);
+
+    string getTransactionLogFileName() const;
 
     template <Serializable... Ts>
     void write(DbTransactionType type, const Ts&... args) & {

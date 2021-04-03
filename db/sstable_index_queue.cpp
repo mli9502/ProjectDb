@@ -48,9 +48,24 @@ void SSTableIndexQueue::update(
             "Got empty ssTableIndexAfterCompaction. This should not happen "
             "when NUM_SSTABLE_TO_COMPACT > 0!");
     }
+    auto eraseBeginIt = m_queue.begin() + m_compactionStartIndex;
+    auto eraseEndIt = m_queue.begin() + m_compactionStartIndex + 1 +
+                      db_config::NUM_SSTABLE_TO_COMPACT;
+    // Mark all the SSTables that we have compressed as deprecated.
+    for_each(eraseBeginIt, eraseEndIt, [](const auto& ssTableIndex) {
+        markFileAsDeprecated(ssTableIndex.getSSTableFileName());
+    });
     m_queue.erase(m_queue.begin() + m_compactionStartIndex,
                   m_queue.begin() + m_compactionStartIndex + 1 +
                       db_config::NUM_SSTABLE_TO_COMPACT);
+
+    // Rename all merged SSTable files to normal SSTable files.
+    for_each(ssTableIndexAfterCompaction.begin(),
+             ssTableIndexAfterCompaction.end(), [](auto& ssTableIndex) {
+                 ssTableIndex.setSSTableFileName(markMergedSSTableFileAsActive(
+                     ssTableIndex.getSSTableFileName()));
+             });
+
     // The updated compactionStartIndex points to the index that represents the
     // last element of ssTableIndexAfterCompaction after inserting them into
     // queue. This is because it's possible that the last compacted SSTable has

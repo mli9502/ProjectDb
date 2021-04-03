@@ -15,9 +15,6 @@
 using namespace std;
 
 namespace projectdb {
-
-MemTableQueue::MemTableQueue() { m_queue.emplace_back(); }
-
 // NOTE: @mli: We can't just return optional<string> because it's possible that
 // we get a TOMBSTONE here, in this case, we should just finish instead of
 // continue searching in SSTableIndex.
@@ -26,38 +23,54 @@ MemTableQueue::MemTableQueue() { m_queue.emplace_back(); }
  * @param key
  * @return
  */
-optional<MemTable::mapped_type> MemTableQueue::get(string_view key) const {
-    MemTable::key_type tableKey{string{key}};
+optional<MemTable::mapped_type> MemTableQueue::get(const string& key) const {
+    if (m_queue.empty()) {
+        return {};
+    }
+    MemTable::key_type tableKey{key};
     const auto cit =
-        find_if(m_queue.crbegin(), m_queue.crend(), [&](const auto& memTable) {
-            return memTable.getValue(tableKey).has_value();
+        find_if(m_queue.crbegin(), m_queue.crend(), [&](const auto& entry) {
+            return entry.first.getValue(tableKey).has_value();
         });
     if (cit == m_queue.crend()) {
         return {};
     }
-    return cit->getValue(tableKey);
+    return cit->first.getValue(tableKey);
 }
 
 /**
  * Set the key value pair in the latest MemTable in the queue.
  */
-optional<future<SSTableIndex>> MemTableQueue::set(string_view key,
-                                                  string_view value) {
-    m_queue.back().set(MemTable::key_type{string(key)},
-                       MemTable::mapped_type{string(value)});
-    return tryLaunchFlushToDisk(m_queue.back());
+optional<future<SSTableIndex>> MemTableQueue::set(const string& key,
+                                                  const string& value) {
+    if (m_queue.empty()) {
+        m_queue.emplace_back();
+    }
+    m_queue.back().second.write(DbTransactionType::SET, key, value);
+    m_queue.back().first.set(MemTable::key_type{key},
+                             MemTable::mapped_type{value});
+    return tryLaunchFlushToDisk(m_queue.back().first);
 }
 
 /**
  * Set the value corresponding to the given key
  * in the latest MemTable in the queue.
  */
-optional<future<SSTableIndex>> MemTableQueue::remove(string_view key) {
-    m_queue.back().remove(MemTable::key_type{string(key)});
-    return tryLaunchFlushToDisk(m_queue.back());
+optional<future<SSTableIndex>> MemTableQueue::remove(const string& key) {
+    if (m_queue.empty()) {
+        m_queue.emplace_back();
+    }
+    m_queue.back().second.write(DbTransactionType::REMOVE, key);
+    m_queue.back().first.remove(MemTable::key_type{key});
+    return tryLaunchFlushToDisk(m_queue.back().first);
 }
 
-void MemTableQueue::pop() { m_queue.pop_front(); }
+void MemTableQueue::pop() {
+    auto transactionLogFileName =
+        m_queue.front().second.getTransactionLogFileName();
+    m_queue.pop_front();
+    markFileAsDeprecated(transactionLogFileName);
+}
 
 /**
  * See if the provided MemTable needs to be flush to disk
@@ -78,8 +91,6 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
             "memTable...");
 
         return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
-        // TODO: @mli: Add code in the place that handles async return to mark
-        // transaction_log as deprecated.
     });
 }
 

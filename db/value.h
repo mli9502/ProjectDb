@@ -6,6 +6,7 @@
 #define MAIN_VALUE_H
 
 #include <iostream>
+#include <optional>
 #include <string>
 
 using namespace std;
@@ -29,7 +30,7 @@ class Value {
     explicit Value(string value);
 
     [[nodiscard]] bool isTombstoneValue() const;
-    [[nodiscard]] value_type value() const;
+    [[nodiscard]] optional<value_type> underlyingValue() const;
 
     void serializeImpl(ostream& os) const&;
     Value deserializeImpl(istream& is) &&;

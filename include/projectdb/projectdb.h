@@ -17,11 +17,12 @@ class ProjectDbImpl;
 class ProjectDb {
    public:
     // TODO: @mli: Add ctor that takes in a config file.
-    ProjectDb() = default;
+    // TODO: @mli: Ctor should also init the db.
+    ProjectDb();
 
-    std::optional<std::string> get(std::string_view key) const;
-    void set(std::string_view key, std::string_view value);
-    void remove(std::string_view key);
+    std::optional<std::string> get(const std::string& key);
+    void set(const std::string& key, const std::string& value);
+    void remove(const std::string& key);
 
    private:
     std::unique_ptr<ProjectDbImpl> m_impl;
