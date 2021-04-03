@@ -20,7 +20,8 @@ namespace projectdb {
 
 class SSTableIndex {
    public:
-    SSTableIndex(string ssTableFileName);
+    void setSSTableFileName(string_view fileName);
+    string getSSTableFileName() const;
     void addIndex(Table::key_type key, ios::pos_type pos);
     void setEofPos(ios::pos_type eofPos);
 

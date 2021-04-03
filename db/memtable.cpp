@@ -15,11 +15,10 @@ namespace projectdb {
 MemTable::MemTable() : m_table(make_shared<Table>()) {}
 
 /**
- * Gets the entry (with potentiall empty value) in the map where the key maps
- * to.
+ * Get the Value with the given key.
+ * Note that the Value could be a TOMBSTONE_VALUE.
  */
-optional<MemTable::mapped_type> MemTable::getValueEntry(
-    const key_type& key) const {
+optional<MemTable::mapped_type> MemTable::getValue(const key_type& key) const {
     const auto& table = m_table->get();
     const auto cit = table.find(key);
     if (cit == table.end()) {
@@ -27,18 +26,6 @@ optional<MemTable::mapped_type> MemTable::getValueEntry(
         return {};
     }
     return cit->second;
-}
-
-/**
- * Gets the value of the entry (if both exist) in the map where the key maps to.
- */
-optional<MemTable::mapped_type::value_type> MemTable::getValue(
-    const key_type& key) const {
-    const auto entry = getValueEntry(key);
-    if (!entry.has_value() || entry.value().isTombstoneValue()) {
-        return {};
-    }
-    return entry.value().value();
 }
 
 // https://stackoverflow.com/questions/26261007/why-is-value-taking-setter-member-functions-not-recommended-in-herb-sutters-cpp
@@ -54,6 +41,10 @@ void MemTable::set(const key_type& key, mapped_type value) {
  */
 void MemTable::remove(const key_type& key) { set(key, mapped_type{}); }
 
+// TODO: @mli: Might be able to optimize this,
+// MemTable could internally keep a member indicating the size, and update this
+// member everytime set/remove is called. So we don't need to loop through the
+// table everytime we call needsFlushToDisk.
 /**
  * Returns true when current table size exceeds approximate max size
  * and needs to flush table to disk.

@@ -28,12 +28,7 @@ class MemTable {
     // Returns the mapped_type (Value).
     // Even if the value is deleted, return will NOT be empty because of
     // TOMBSTONE.
-    [[nodiscard]] optional<mapped_type> getValueEntry(
-        const key_type& key) const;
-    // Returns the mapped_type::value_type (string).
-    // If the value is deleted, return will be empty.
-    [[nodiscard]] optional<mapped_type::value_type> getValue(
-        const key_type& key) const;
+    [[nodiscard]] optional<mapped_type> getValue(const key_type& key) const;
     void set(const key_type& key, mapped_type value);
     /**
      * NOTE: @mli:
