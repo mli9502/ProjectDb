@@ -62,6 +62,9 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
 }  // namespace
 
 SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName) {
+    // First try remove deprecated files to keep directory clean.
+    removeDeprecatedFiles();
+
     SSTableIndex rtn;
 
     auto ofs = getFileStream(fileName, ios_base::out);
@@ -112,6 +115,9 @@ SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex) {
 vector<SSTableIndex> mergeSSTables(
     SSTableIndexQueue::value_type::iterator begin,
     SSTableIndexQueue::value_type::iterator end) {
+    // First try remove deprecated files to keep directory clean.
+    removeDeprecatedFiles();
+
     vector<SSTableIndex> rtn;
     auto curr = begin;
     auto next = ++begin;

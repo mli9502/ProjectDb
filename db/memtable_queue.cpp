@@ -65,7 +65,12 @@ optional<future<SSTableIndex>> MemTableQueue::remove(const string& key) {
     return tryLaunchFlushToDisk(m_queue.back().first);
 }
 
-void MemTableQueue::pop() { m_queue.pop_front(); }
+void MemTableQueue::pop() {
+    auto transactionLogFileName =
+        m_queue.front().second.getTransactionLogFileName();
+    m_queue.pop_front();
+    markFileAsDeprecated(transactionLogFileName);
+}
 
 /**
  * See if the provided MemTable needs to be flush to disk
@@ -86,8 +91,6 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
             "memTable...");
 
         return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
-        // TODO: @mli: Add code in the place that handles async return to mark
-        // transaction_log as deprecated.
     });
 }
 

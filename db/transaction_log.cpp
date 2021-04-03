@@ -16,6 +16,10 @@ TransactionLogWritter::TransactionLogWritter(string transactionLogFileName)
     : m_transactionLogFileName(move(transactionLogFileName)),
       m_ofs(getFileStream(m_transactionLogFileName, ios_base::app)) {}
 
+string TransactionLogWritter::getTransactionLogFileName() const {
+    return m_transactionLogFileName;
+}
+
 MemTable TransactionLogLoader::load(string_view transactionLogFileName) {
     MemTable rtn;
     auto ifs = getFileStream(transactionLogFileName, ios_base::in);

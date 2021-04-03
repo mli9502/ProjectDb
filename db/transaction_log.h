@@ -20,6 +20,8 @@ class TransactionLogWritter {
     TransactionLogWritter();
     TransactionLogWritter(string transactionLogFileName);
 
+    string getTransactionLogFileName() const;
+
     template <Serializable... Ts>
     void write(DbTransactionType type, const Ts&... args) & {
         SerializationWrapper<DbTransactionType>{type}(m_ofs);

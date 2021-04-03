@@ -17,6 +17,7 @@ class ProjectDbImpl;
 class ProjectDb {
    public:
     // TODO: @mli: Add ctor that takes in a config file.
+    // TODO: @mli: Ctor should also init the db.
     ProjectDb();
 
     std::optional<std::string> get(const std::string& key);

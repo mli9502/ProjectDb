@@ -22,9 +22,15 @@ timestamp_unit_type getTimeSinceEpoch();
 string genSSTableFileName();
 string genTransactionLogFileName();
 
-string genMergedSSTableFileName(string_view baseFilename);
+string genMergedSSTableFileName(string_view baseFileName);
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode);
+
+void markFileAsDeprecated(string_view baseFileName);
+// Remove the .merged extension so that the merged SSTable files will be in use.
+string markMergedSSTableFileAsActive(string_view mergedFileName);
+
+void removeDeprecatedFiles();
 
 // https://stackoverflow.com/questions/43514665/use-of-auto-funcint-before-deduction-of-auto-in-c14
 inline auto getFileSizeInBytes(string_view baseFileName) {
