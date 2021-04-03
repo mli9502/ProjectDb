@@ -12,7 +12,6 @@
 #include <vector>
 
 #include "db_concepts.h"
-#include "key.h"
 #include "log.h"
 
 using namespace std;

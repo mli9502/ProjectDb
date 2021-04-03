@@ -4,21 +4,11 @@ project(utils LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_library(utils STATIC
-        log.cpp
-        exception.cpp
-        memtable.cpp
-        key.cpp
-        value.cpp
+add_library(utils OBJECT
         db_concepts.cpp
+        exception.cpp
+        log.cpp
         serializer.cpp
-        memtable_queue.cpp
-        sstable_index.cpp
-        db_config.cpp
-        sstable.cpp
-        table.cpp
-        system_utils.cpp
-        transaction_log.cpp
-        transaction.cpp
-        sstable_ops.cpp
-        sstable_index_queue.cpp)
+        system_utils.cpp)
+
+target_include_directories(utils PRIVATE ${CMAKE_SOURCE_DIR}/config)
