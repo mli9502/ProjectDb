@@ -2,37 +2,23 @@
 // Created by smao on 3/29/21.
 //
 #include <iostream>
-#include "memtable_queue.h"
+#include "project_db.h"
 #include "random.h"
+#include "bench.h"
 
 using namespace std;
 using namespace projectdb;
 
-// Benchmarks modifed from LevelDB
-// Copyright (c) 2011 The LevelDB Authors. All rights reserved.
-// Benchmarks avaliable:
-//       fillseq       -- write N values in sequential key order
-//       fillrandom    -- write N values in random key order
-//       overwrite     -- overwrite N values in random key order
-//       deleteseq     -- delete N keys in sequential order
-//       deleterandom  -- delete N keys in random order
-//       readseq       -- read N times sequentially
-//       readreverse   -- read N times in reverse order
-//       readrandom    -- read N times in random order
-//       readmissing   -- read N missing keys in random order
-//       seekrandom    -- N random seeks
-//       seekordered   -- N ordered seeks
-
+using kvp_vec = vector<pair<string,string>>;
 
 /**
  * Prints the keys and values in db
  * given a vector of key and value pairs.
  */
-void print_db(MemTableQueue db, vector<string> kvs) 
+void print_db(ProjectDb& db, const kvp_vec& kvs) 
 {
-	int size = kvs.size();
-	for (int i=0; i<size; i+=2)
-		cout<<kvs[i]<<", "<<db.get(kvs[i])<<"\n";
+	for (auto pair : kvs)
+		cout<<pair.first<<", "<<pair.second<<'\n';
 }
 
 /**
@@ -40,11 +26,11 @@ void print_db(MemTableQueue db, vector<string> kvs)
  * into a vector of key value pairs where the keys are taken from the 
  * first column and the values are taken from val_col.
  */
-vector<pair<string,string>> read_csv(string fname, int val_col, int size)
+kvp_vec read_csv(const string fname, int val_col, int size)
 {
 	fstream fin;
 	string line, word, temp;
-	vector<pair<string,string>> kvs;
+	kvp_vec kvs;
 	pair<string,string> kvp;
 
 	fin.open(fname, ios::in);
@@ -69,10 +55,11 @@ vector<pair<string,string>> read_csv(string fname, int val_col, int size)
 /**
  * Pass in key value pairs by copy and sorts them
  */
-vector<pair<string,string>> copy_sort(const vector<pair<string,string>> kvs)
+kvp_vec copy_sort(const kvp_vec& kvs)
 {
-	sort(kvs.begin(),kvs.end());
-	return kvs;
+	kvp_vec sorted = copy(kvs.begin(),kvs.end());
+	sort(sorted.begin(),sorted.end());
+	return sorted;
 }
 
 /**
@@ -111,10 +98,10 @@ string random_key(const Random &rnd, int len)
  * Generates size number of key value pairs of length len
  * and returns them in a vector.
  */
-vector<pair<string,string>> gen_rand(int seed, int size, int len)
+kvp_vec gen_rand(int seed, int size, int len)
 {
 	Random rnd(seed);
-	vector<pair<string,string>> kvs;
+	kvp_vec kvs;
 	pair<string,string> kvp;
 
 	while (size>0){
@@ -123,4 +110,67 @@ vector<pair<string,string>> gen_rand(int seed, int size, int len)
 		kvs.push_back(kvp);
 	}
 	return kvs;
+}
+
+duration<double> clear_db (ProjectDb& db, const kvp_vec& kvs)
+{
+	auto start = chrono::steady_clock::now();
+	for (auto pair : kvs)
+		db.delete(db);
+	auto stop = chrono::steady_clock::now();
+	return stop - start;
+}
+
+duration<double> write_db (ProjectDb& db, const kvp_vec& kvs)
+{
+	auto start = chrono::steady_clock::now();
+	for (auto pair : kvs)
+		db.set(pair.first, pair.second);
+	auto stop = chrono::steady_clock::now();
+	return stop - start;
+}
+
+duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
+{
+	auto start = chrono::steady_clock::now();
+	for (auto pair : kvs)
+		db.get(pair.first);
+	auto stop = chrono::steady_clock::now();
+	return stop - start;
+}
+
+struct bench_stat run_bench(ProjectDb& db, int trials, int seed, int size, int len)
+{
+	kvp_vec kvs = gen_rand(seed, size, len);
+	kvp_vec sorted = copy_sorted(kvs);
+	struct bench_stats bs;
+
+	write_db(db, sorted);
+	clear_db(db, sorted);
+
+	bs.fillseq = write_db(db, sorted);
+	clear_db(db, sorted);
+
+	bs.fillrand = write_db(db, kvs);
+	clear_db(db, sorted);
+
+	write_db(db, sorted);
+	bs.overwrite = write_db(db, sorted);
+	clear_db(db, sorted);
+
+	write_db(db, sorted);
+	bs.deleteseq = clear_db(db, sorted);
+
+	write_db(db, sorted);
+	bs.deleterandom = clear_db(db, kvs);
+
+	write_db(db, sorted);
+	bs.seekrandom = seek_db(db, kvs);
+	clear_db(db, sorted);
+
+	write_db(db, sorted);
+	bs.seekordered = seek_db(db, sorted);
+	clear_db(db, sorted);
+
+	return bs;
 }
