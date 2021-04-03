@@ -36,7 +36,7 @@ string genTransactionLogFileName() {
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
-    if ((ioMode & ios::out) != 0) {
+    if (((ioMode & ios::out) != 0) || ((ioMode & ios::app) != 0)) {
         log::debug(
             "out mode, try creating directory to make sure that it exists.");
         try {
