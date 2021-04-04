@@ -8,8 +8,8 @@ namespace projectdb {
 
 namespace db_config {
 
-unsigned MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024 * 1024;  // 16 mb
-unsigned SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 512 * 1024;             // 0.5 mb
+unsigned MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 2 * 1024 * 1024;  // 2 mb
+unsigned SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 256 * 1024;            // 0.25 mb
 
 string DB_FILE_PREFIX = "project_db";
 
@@ -22,7 +22,7 @@ string MERGED_SSTABLE_FILE_TYPE = "merged";
 string DEPRECATED_FILE_TYPE = "deprecated";
 
 unsigned NUM_SSTABLE_TO_COMPACT = 5;
-unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 64 * 1024 * 1024;  // 64 mb
+unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 4 * 1024 * 1024;  // 4 mb
 
 bool KEEP_SSTABLE_FILE_OPEN = false;
 

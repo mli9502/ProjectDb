@@ -19,20 +19,20 @@ class ProjectDbImpl {
 
         const auto& memTableRtn = m_memTableQueue.get(key);
         if (memTableRtn.has_value()) {
-            log::debug("Found key: [", key, "] in MemTableQueue with Value: [",
-                       memTableRtn.value(), "]");
+            log::info("Found key: [", key, "] in MemTableQueue with Value: [",
+                      memTableRtn.value(), "]");
             return memTableRtn.value().underlyingValue();
         }
 
         const auto& ssTableRtn = m_ssTableIndexQueue.get(key);
         if (ssTableRtn.has_value()) {
-            log::debug("Found key: [", key,
-                       "] in SSTableIndexQueue with Value: [",
-                       ssTableRtn.value(), "]");
+            log::info("Found key: [", key,
+                      "] in SSTableIndexQueue with Value: [",
+                      ssTableRtn.value(), "]");
             return ssTableRtn.value().underlyingValue();
         }
 
-        log::debug("Key: [", key, "] not found.");
+        log::info("Key: [", key, "] not found.");
         return {};
     }
 
