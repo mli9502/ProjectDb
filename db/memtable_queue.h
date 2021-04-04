@@ -10,8 +10,10 @@
 #include <memory>
 #include <optional>
 #include <string_view>
+#include <utility>
 
 #include "memtable.h"
+#include "transaction_log.h"
 
 using namespace std;
 
@@ -26,13 +28,12 @@ class SSTableIndex;
  */
 class MemTableQueue {
    public:
-    MemTableQueue();
     // https://abseil.io/tips/1
-    [[nodiscard]] optional<MemTable::mapped_type> get(string_view key) const;
+    [[nodiscard]] optional<MemTable::mapped_type> get(const string& key) const;
     // https://stackoverflow.com/questions/14222899/exception-propagation-and-stdfuture
-    [[nodiscard]] optional<future<SSTableIndex>> set(string_view key,
-                                                     string_view value);
-    [[nodiscard]] optional<future<SSTableIndex>> remove(string_view key);
+    [[nodiscard]] optional<future<SSTableIndex>> set(const string& key,
+                                                     const string& value);
+    [[nodiscard]] optional<future<SSTableIndex>> remove(const string& key);
 
     /**
      * NOTE: @mli:
@@ -47,7 +48,7 @@ class MemTableQueue {
 
    private:
     // [old ... new]
-    deque<MemTable> m_queue;
+    deque<pair<MemTable, TransactionLogWritter>> m_queue;
 
     [[nodiscard]] optional<future<SSTableIndex>> tryLaunchFlushToDisk(
         const MemTable& memTable);

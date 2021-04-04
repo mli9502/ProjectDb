@@ -22,9 +22,9 @@ bool Value::isTombstoneValue() const { return m_type == Type::TOMBSTONE_VALUE; }
 /**
  * Retrieves the actual value from the Value.
  */
-Value::value_type Value::value() const {
+optional<Value::value_type> Value::underlyingValue() const {
     if (isTombstoneValue()) {
-        log::errorAndThrow("Trying to access value for TOMBSTONE!");
+        return {};
     }
     return m_value;
 }

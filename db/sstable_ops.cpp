@@ -24,13 +24,7 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
     auto newIt = newTable.begin();
 
     while (oldIt != oldTable.end() && newIt != newTable.end()) {
-        if (oldIt == oldTable.end()) {
-            mergedTable.emplace(*oldIt);
-            oldIt++;
-        } else if (newIt == newTable.end()) {
-            mergedTable.emplace(*newIt);
-            newIt++;
-        } else if (oldIt->first < newIt->first) {
+        if (oldIt->first < newIt->first) {
             mergedTable.emplace(*oldIt);
             oldIt++;
         } else if (newIt->first < oldIt->first) {
@@ -43,6 +37,16 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
         }
     }
 
+    while (oldIt != oldTable.end()) {
+        mergedTable.emplace(*oldIt);
+        oldIt++;
+    }
+
+    while (newIt != newTable.end()) {
+        mergedTable.emplace(*newIt);
+        newIt++;
+    }
+
     // Go through merged table and remove all entries with TOMBSTONE value.
     for (auto it = mergedTable.cbegin(); it != mergedTable.cend();) {
         if (it->second.isTombstoneValue()) {
@@ -51,17 +55,18 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
             it++;
         }
     }
-
-    log::debug("oldTable: ", oldTable);
-    log::debug("newTable: ", newTable);
-    log::debug("mergedTable: ", mergedTable);
-
+    //    log::debug("oldTable: ", oldTable);
+    //    log::debug("newTable: ", newTable);
+    //    log::debug("mergedTable: ", mergedTable);
     return rtn;
 }
 
 }  // namespace
 
 SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName) {
+    // First try remove deprecated files to keep directory clean.
+    removeDeprecatedFiles();
+
     SSTableIndex rtn;
 
     auto ofs = getFileStream(fileName, ios_base::out);
@@ -105,13 +110,18 @@ SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex) {
         ssTableIndex->setEofPos(ifs.tellg());
     }
 
-    log::debug("Successfully deserialzed SSTable: ", rtn);
+    //    log::debug("Successfully deserialzed SSTable: ", rtn);
     return rtn;
 }
 
 vector<SSTableIndex> mergeSSTables(
     SSTableIndexQueue::value_type::iterator begin,
     SSTableIndexQueue::value_type::iterator end) {
+    // First try remove deprecated files to keep directory clean.
+    removeDeprecatedFiles();
+
+    auto debugTag = to_string(getTimeSinceEpoch().count()) + "; ";
+
     vector<SSTableIndex> rtn;
     auto curr = begin;
     auto next = ++begin;
@@ -131,29 +141,48 @@ vector<SSTableIndex> mergeSSTables(
         // Merge to a new table.
         currTable = mergeSSTable(*currTable, *nextTable);
         next++;
-        log::debug("currTable after merge: ", *currTable);
-        log::debug("currTableSize after merge: ", currTableSize);
+        //        log::debug("currTable after merge: ", *currTable);
+        //        log::debug("currTableSize after merge: ", currTableSize);
         if (next == end) {
             log::debug("next reaches end, flush to disk.");
             rtn.emplace_back(flushSSTable(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
             break;
         }
+        //        log::debug(debugTag, "curr fileName: ",
+        //        curr->getSSTableFileName()); log::debug(debugTag, "next
+        //        fileName: ", next->getSSTableFileName());
         if (currTableSize > db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES) {
             log::debug(
                 "currTableSize > SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES, flush "
                 "to disk.");
+            //            log::debug(debugTag,
+            //                       "1. next fileName: ",
+            //                       next->getSSTableFileName());
             rtn.emplace_back(flushSSTable(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
+            //            log::debug(debugTag,
+            //                       "2. next fileName: ",
+            //                       next->getSSTableFileName());
             curr = next;
             next++;
             currSSTableFileName = curr->getSSTableFileName();
+            //            log::debug(debugTag,
+            //                       "2. loadSSTable with file: ",
+            //                       currSSTableFileName);
             currTable = make_unique<SSTable>(loadSSTable(currSSTableFileName));
+            //            log::debug(debugTag,
+            //                       "2. done loadSSTable with file: ",
+            //                       currSSTableFileName);
             currTableSize = getFileSizeInBytes(currSSTableFileName);
 
             if (next == end) {
+                log::debug(
+                    "Only one SSTable left. Will just mark it as merged.");
                 rtn.emplace_back(flushSSTable(
                     *currTable, genMergedSSTableFileName(currSSTableFileName)));
+                //                log::debug("Flushing last sstable to disk
+                //                done.");
                 break;
             }
         }

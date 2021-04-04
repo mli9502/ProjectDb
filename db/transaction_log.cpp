@@ -8,9 +8,17 @@
 
 namespace projectdb {
 
+TransactionLogWritter::TransactionLogWritter()
+    : m_transactionLogFileName(genTransactionLogFileName()),
+      m_ofs(getFileStream(m_transactionLogFileName, ios_base::app)) {}
+
 TransactionLogWritter::TransactionLogWritter(string transactionLogFileName)
     : m_transactionLogFileName(move(transactionLogFileName)),
       m_ofs(getFileStream(m_transactionLogFileName, ios_base::app)) {}
+
+string TransactionLogWritter::getTransactionLogFileName() const {
+    return m_transactionLogFileName;
+}
 
 MemTable TransactionLogLoader::load(string_view transactionLogFileName) {
     MemTable rtn;

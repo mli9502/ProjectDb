@@ -24,9 +24,12 @@ class SSTableIndexQueue {
     SSTableIndexQueue();
 
     [[nodiscard]] optional<Table::mapped_type> get(string_view key);
-    [[nodiscard]] optional<future<vector<SSTableIndex>>> insert(
-        SSTableIndex&& ssTableIndex);
-
+    void insert(SSTableIndex&& ssTableIndex);
+    /**
+     * Try launching the compaction job.
+     * @return
+     */
+    [[nodiscard]] optional<future<vector<SSTableIndex>>> tryLaunchCompaction();
     /**
      * Update the queue with new SSTableIndex after compaction is done.
      * @param ssTableIndexAfterCompaction
@@ -42,12 +45,6 @@ class SSTableIndexQueue {
      * m_compactionStartIndex + NUM_SSTABLE_TO_COMPACT]
      */
     size_t m_compactionStartIndex;
-
-    /**
-     * Try launching the compaction job.
-     * @return
-     */
-    optional<future<vector<SSTableIndex>>> tryLaunchCompaction();
 };
 }  // namespace projectdb
 
