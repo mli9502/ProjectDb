@@ -32,19 +32,28 @@ optional<Table::mapped_type> SSTableIndex::seek(const Table::key_type& key) {
     // keep a unique_ptr of ifstream, and only try to open it when seek is
     // called, since at this point, no one should be writing to the file
     // anymore.
-    if (!m_ifs) {
+    if (db_config::KEEP_SSTABLE_FILE_OPEN && !m_ifs) {
         m_ifs = make_unique<fstream>(
             getFileStream(m_ssTableFileName, ios_base::in));
     }
+
     auto potentialBlockPos = getPotentialBlockPos(key);
     if (!potentialBlockPos.has_value()) {
         return {};
     }
 
-    Table::value_type partialSSTable =
-        DeserializationWrapper<Table::value_type>{}(
+    Table::value_type partialSSTable;
+
+    if (db_config::KEEP_SSTABLE_FILE_OPEN) {
+        partialSSTable = DeserializationWrapper<Table::value_type>{}(
             *m_ifs, potentialBlockPos.value().first,
             potentialBlockPos.value().second);
+    } else {
+        auto ifs = getFileStream(m_ssTableFileName, ios_base::in);
+        partialSSTable = DeserializationWrapper<Table::value_type>{}(
+            ifs, potentialBlockPos.value().first,
+            potentialBlockPos.value().second);
+    }
 
     const auto cit = partialSSTable.find(key);
     if (cit == partialSSTable.end()) {

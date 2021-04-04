@@ -19,6 +19,8 @@ class ProjectDb {
     // TODO: @mli: Add ctor that takes in a config file.
     // TODO: @mli: Ctor should also init the db.
     ProjectDb();
+    // https://www.fluentcpp.com/2017/09/22/make-pimpl-using-unique_ptr/
+    ~ProjectDb();
 
     std::optional<std::string> get(const std::string& key);
     void set(const std::string& key, const std::string& value);

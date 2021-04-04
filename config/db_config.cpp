@@ -24,6 +24,8 @@ string DEPRECATED_FILE_TYPE = "deprecated";
 unsigned NUM_SSTABLE_TO_COMPACT = 5;
 unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 64 * 1024 * 1024;  // 64 mb
 
+bool KEEP_SSTABLE_FILE_OPEN = false;
+
 namespace impl {
 unsigned SSTABLE_FILE_COUNTER_BASE = 0;
 unsigned TRANSACTION_LOG_FILE_COUNTER_BASE = 0;

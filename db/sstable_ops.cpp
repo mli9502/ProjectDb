@@ -24,13 +24,7 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
     auto newIt = newTable.begin();
 
     while (oldIt != oldTable.end() && newIt != newTable.end()) {
-        if (oldIt == oldTable.end()) {
-            mergedTable.emplace(*oldIt);
-            oldIt++;
-        } else if (newIt == newTable.end()) {
-            mergedTable.emplace(*newIt);
-            newIt++;
-        } else if (oldIt->first < newIt->first) {
+        if (oldIt->first < newIt->first) {
             mergedTable.emplace(*oldIt);
             oldIt++;
         } else if (newIt->first < oldIt->first) {
@@ -41,6 +35,16 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
             oldIt++;
             newIt++;
         }
+    }
+
+    while (oldIt != oldTable.end()) {
+        mergedTable.emplace(*oldIt);
+        oldIt++;
+    }
+
+    while (newIt != newTable.end()) {
+        mergedTable.emplace(*newIt);
+        newIt++;
     }
 
     // Go through merged table and remove all entries with TOMBSTONE value.
@@ -118,6 +122,8 @@ vector<SSTableIndex> mergeSSTables(
     // First try remove deprecated files to keep directory clean.
     removeDeprecatedFiles();
 
+    auto debugTag = to_string(getTimeSinceEpoch().count()) + "; ";
+
     vector<SSTableIndex> rtn;
     auto curr = begin;
     auto next = ++begin;
@@ -127,6 +133,7 @@ vector<SSTableIndex> mergeSSTables(
             "NUM_SSTABLE_TO_COMPACT > 0!");
     }
     auto currSSTableFileName = curr->getSSTableFileName();
+    log::debug(debugTag, ": @mli: currSSTableFileName: ", currSSTableFileName);
     unique_ptr<SSTable> currTable =
         make_unique<SSTable>(loadSSTable(currSSTableFileName));
     auto currTableSize = getFileSizeInBytes(currSSTableFileName);
@@ -145,25 +152,39 @@ vector<SSTableIndex> mergeSSTables(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
             break;
         }
+        log::debug(debugTag, "curr fileName: ", curr->getSSTableFileName());
+        log::debug(debugTag, "next fileName: ", next->getSSTableFileName());
         if (currTableSize > db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES) {
             log::debug(
                 "currTableSize > SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES, flush "
                 "to disk.");
+            log::debug(debugTag,
+                       "1. next fileName: ", next->getSSTableFileName());
             rtn.emplace_back(flushSSTable(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
+            log::debug(debugTag,
+                       "2. next fileName: ", next->getSSTableFileName());
             curr = next;
             next++;
             currSSTableFileName = curr->getSSTableFileName();
+            log::debug(debugTag,
+                       "2. loadSSTable with file: ", currSSTableFileName);
             currTable = make_unique<SSTable>(loadSSTable(currSSTableFileName));
+            log::debug(debugTag,
+                       "2. done loadSSTable with file: ", currSSTableFileName);
             currTableSize = getFileSizeInBytes(currSSTableFileName);
 
             if (next == end) {
+                log::debug(
+                    "Only one SSTable left. Will just mark it as merged.");
                 rtn.emplace_back(flushSSTable(
                     *currTable, genMergedSSTableFileName(currSSTableFileName)));
+                log::debug("Flushing last sstable to disk done.");
                 break;
             }
         }
     }
+    log::debug("Before return rtn.");
     return rtn;
 }
 
