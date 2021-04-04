@@ -33,7 +33,6 @@ void SSTableIndexQueue::insert(SSTableIndex&& ssTableIndex) {
 
 void SSTableIndexQueue::update(
     vector<SSTableIndex>&& ssTableIndexAfterCompaction) {
-    log::debug("Calling SSTableIndexQueue::update...");
     if (db_config::NUM_SSTABLE_TO_COMPACT <= 0) {
         log::errorAndThrow("Invalid NUM_SSTABLE_TO_COMPACT for update!");
     }

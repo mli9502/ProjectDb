@@ -109,6 +109,10 @@ class ProjectDbImpl {
         // tryLaunchCompaction will modify m_ssTableIndexQueue, we have to
         // guarantee that the queue is only updated by one of these at any given
         // time, otherwise, the pointer will be invalidated.
+        // Also note that we can start the flushToDisk job, since it just
+        // returns the SSTableIndex without modifying the ssTableIndexQueue.
+        // However, we can't call checkFlushToDiskFutures while compaction job
+        // is running, since checkFlushToDiskFutures will update the queue.
         log::debug("Try starting SSTable compaction job.");
         auto&& ft = m_ssTableIndexQueue.tryLaunchCompaction();
         if (ft.has_value()) {

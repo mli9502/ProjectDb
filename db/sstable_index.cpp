@@ -79,23 +79,26 @@ optional<pair<ios::pos_type, ios::pos_type>> SSTableIndex::getPotentialBlockPos(
                 endPos = next(cit)->second;
             }
             log::debug("key: ", key, " is found in index at pos: ", cit->second,
-                       ". Will load block: [", cit->second, ", ", endPos, ").");
+                       ". Will load block: [", cit->second, ", ", endPos,
+                       ") from SSTable: ", getSSTableFileName());
             return make_pair(cit->second, endPos);
         }
         if (less<Table::key_type>()(key, cit->first)) {
             if (cit == m_index.cbegin()) {
                 log::debug("key: ", key,
                            " is less than the first element of the index: ",
-                           cit->first);
+                           cit->first, ", will skip checking SSTable: ",
+                           getSSTableFileName());
                 return {};
             }
             log::debug("key: ", key, " is less than index: ", cit->first,
                        " at pos: ", cit->second, ". Will load block: [",
-                       prev(cit)->second, ", ", cit->second, ").");
+                       prev(cit)->second, ", ", cit->second,
+                       ") from SSTable: ", getSSTableFileName());
             return make_pair(prev(cit)->second, cit->second);
         }
     }
-    log::debug("Key: ", key, " not found in SSTable: ", m_ssTableFileName);
+    log::debug("Key: ", key, " not found in SSTable: ", getSSTableFileName());
     return {};
 }
 

@@ -55,11 +55,9 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
             it++;
         }
     }
-
-    log::debug("oldTable: ", oldTable);
-    log::debug("newTable: ", newTable);
-    log::debug("mergedTable: ", mergedTable);
-
+    //    log::debug("oldTable: ", oldTable);
+    //    log::debug("newTable: ", newTable);
+    //    log::debug("mergedTable: ", mergedTable);
     return rtn;
 }
 
@@ -112,7 +110,7 @@ SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex) {
         ssTableIndex->setEofPos(ifs.tellg());
     }
 
-    log::debug("Successfully deserialzed SSTable: ", rtn);
+    //    log::debug("Successfully deserialzed SSTable: ", rtn);
     return rtn;
 }
 
@@ -133,7 +131,6 @@ vector<SSTableIndex> mergeSSTables(
             "NUM_SSTABLE_TO_COMPACT > 0!");
     }
     auto currSSTableFileName = curr->getSSTableFileName();
-    log::debug(debugTag, ": @mli: currSSTableFileName: ", currSSTableFileName);
     unique_ptr<SSTable> currTable =
         make_unique<SSTable>(loadSSTable(currSSTableFileName));
     auto currTableSize = getFileSizeInBytes(currSSTableFileName);
@@ -144,34 +141,39 @@ vector<SSTableIndex> mergeSSTables(
         // Merge to a new table.
         currTable = mergeSSTable(*currTable, *nextTable);
         next++;
-        log::debug("currTable after merge: ", *currTable);
-        log::debug("currTableSize after merge: ", currTableSize);
+        //        log::debug("currTable after merge: ", *currTable);
+        //        log::debug("currTableSize after merge: ", currTableSize);
         if (next == end) {
             log::debug("next reaches end, flush to disk.");
             rtn.emplace_back(flushSSTable(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
             break;
         }
-        log::debug(debugTag, "curr fileName: ", curr->getSSTableFileName());
-        log::debug(debugTag, "next fileName: ", next->getSSTableFileName());
+        //        log::debug(debugTag, "curr fileName: ",
+        //        curr->getSSTableFileName()); log::debug(debugTag, "next
+        //        fileName: ", next->getSSTableFileName());
         if (currTableSize > db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES) {
             log::debug(
                 "currTableSize > SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES, flush "
                 "to disk.");
-            log::debug(debugTag,
-                       "1. next fileName: ", next->getSSTableFileName());
+            //            log::debug(debugTag,
+            //                       "1. next fileName: ",
+            //                       next->getSSTableFileName());
             rtn.emplace_back(flushSSTable(
                 *currTable, genMergedSSTableFileName(currSSTableFileName)));
-            log::debug(debugTag,
-                       "2. next fileName: ", next->getSSTableFileName());
+            //            log::debug(debugTag,
+            //                       "2. next fileName: ",
+            //                       next->getSSTableFileName());
             curr = next;
             next++;
             currSSTableFileName = curr->getSSTableFileName();
-            log::debug(debugTag,
-                       "2. loadSSTable with file: ", currSSTableFileName);
+            //            log::debug(debugTag,
+            //                       "2. loadSSTable with file: ",
+            //                       currSSTableFileName);
             currTable = make_unique<SSTable>(loadSSTable(currSSTableFileName));
-            log::debug(debugTag,
-                       "2. done loadSSTable with file: ", currSSTableFileName);
+            //            log::debug(debugTag,
+            //                       "2. done loadSSTable with file: ",
+            //                       currSSTableFileName);
             currTableSize = getFileSizeInBytes(currSSTableFileName);
 
             if (next == end) {
@@ -179,12 +181,12 @@ vector<SSTableIndex> mergeSSTables(
                     "Only one SSTable left. Will just mark it as merged.");
                 rtn.emplace_back(flushSSTable(
                     *currTable, genMergedSSTableFileName(currSSTableFileName)));
-                log::debug("Flushing last sstable to disk done.");
+                //                log::debug("Flushing last sstable to disk
+                //                done.");
                 break;
             }
         }
     }
-    log::debug("Before return rtn.");
     return rtn;
 }
 
