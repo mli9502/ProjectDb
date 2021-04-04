@@ -26,10 +26,13 @@ extern string DB_FILE_PREFIX;
 extern string DB_FILE_PATH;
 
 // The file extensions.
-extern string SSTABLE_FILE_TYPE;
-extern string TRANSACTION_LOG_FILE_TYPE;
-extern string MERGED_SSTABLE_FILE_TYPE;
-extern string DEPRECATED_FILE_TYPE;
+extern string SSTABLE_FILE_EXT;
+extern string SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT;
+extern string MERGED_SSTABLE_FILE_EXT;
+
+extern string TRANSACTION_LOG_FILE_EXT;
+
+extern string DEPRECATED_FILE_EXT;
 
 // The number of new SSTables that needs to be added before running a
 // compaction. Compaction runs on these newly added SSTables.

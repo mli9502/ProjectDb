@@ -68,22 +68,26 @@ SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName) {
     removeDeprecatedFiles();
 
     SSTableIndex rtn;
+    // Scope to make sure that ofs is destroyed.
+    {
+        auto ofs = getFileStream(fileName, ios_base::out);
+        SerializationWrapper<SSTableMetaData>{ssTable.metaData()}(ofs);
+        SerializationWrapper<Table::value_type>{ssTable.table().get()}(
+            ofs,
+            [&](const Table::value_type::value_type& entry, ios::pos_type pos,
+                streamsize currBlockSize, bool isFirstOrLastEntry) {
+                if (!isFirstOrLastEntry &&
+                    currBlockSize <
+                        db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
+                    return false;
+                }
+                rtn.addIndex(entry.first, pos);
+                return true;
+            });
+        rtn.setEofPos(ofs.tellp());
+    }
 
-    auto ofs = getFileStream(fileName, ios_base::out);
-    SerializationWrapper<SSTableMetaData>{ssTable.metaData()}(ofs);
-    SerializationWrapper<Table::value_type>{ssTable.table().get()}(
-        ofs, [&](const Table::value_type::value_type& entry, ios::pos_type pos,
-                 streamsize currBlockSize, bool isFirstOrLastEntry) {
-            if (!isFirstOrLastEntry &&
-                currBlockSize < db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES) {
-                return false;
-            }
-            rtn.addIndex(entry.first, pos);
-            return true;
-        });
-    rtn.setEofPos(ofs.tellp());
     rtn.setSSTableFileName(fileName);
-
     return rtn;
 }
 

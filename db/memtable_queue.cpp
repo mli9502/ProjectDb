@@ -87,7 +87,15 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
         "generate SSTableIndex.");
     m_queue.emplace_back();
     return async(launch::async, [&]() {
-        return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
+        const auto& ssTableFileName = genSSTableFileName();
+        const auto& flushInProgressSSTableFilename =
+            genFlushInProgressSSTableFileName(ssTableFileName);
+        auto rtn = flushSSTable(SSTable(memTable.getTable()),
+                                flushInProgressSSTableFilename);
+        // In here we remove the flush-in-progress extension to indicate that
+        // flush is done.
+        rtn.setSSTableFileName(removeExtAndRename(rtn.getSSTableFileName()));
+        return rtn;
     });
 }
 

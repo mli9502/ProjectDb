@@ -9,13 +9,13 @@
 namespace projectdb {
 
 namespace {
-string genFileName(unsigned counter, const string& fileType) {
-    return db_config::DB_FILE_PREFIX + "_" + to_string(counter) + "." +
-           fileType;
+
+string genFileName(unsigned counter, const string& fileExt) {
+    return db_config::DB_FILE_PREFIX + "_" + to_string(counter) + fileExt;
 }
 
 string genDeprecatedFileName(string_view baseFileName) {
-    return string(baseFileName) + "." + db_config::DEPRECATED_FILE_TYPE;
+    return string(baseFileName) + db_config::DEPRECATED_FILE_EXT;
 }
 
 }  // namespace
@@ -27,16 +27,20 @@ timestamp_unit_type getTimeSinceEpoch() {
 
 string genSSTableFileName() {
     return genFileName(db_config::impl::SSTABLE_FILE_COUNTER_BASE++,
-                       db_config::SSTABLE_FILE_TYPE);
+                       db_config::SSTABLE_FILE_EXT);
+}
+
+string genFlushInProgressSSTableFileName(string_view baseFileName) {
+    return string(baseFileName) + db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT;
 }
 
 string genMergedSSTableFileName(string_view baseFileName) {
-    return string(baseFileName) + "." + db_config::MERGED_SSTABLE_FILE_TYPE;
+    return string(baseFileName) + db_config::MERGED_SSTABLE_FILE_EXT;
 }
 
 string genTransactionLogFileName() {
     return genFileName(db_config::impl::TRANSACTION_LOG_FILE_COUNTER_BASE++,
-                       db_config::TRANSACTION_LOG_FILE_TYPE);
+                       db_config::TRANSACTION_LOG_FILE_EXT);
 }
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
@@ -66,30 +70,36 @@ void markFileAsDeprecated(string_view baseFileName) {
     filesystem::rename(currFilePath, deprecatedFilePath);
 }
 
-string markMergedSSTableFileAsActive(string_view mergedFileName) {
+/**
+ * Removes the last extension of the file, and rename the file with this new
+ * name.
+ * @param fileName
+ * @return the file name with last ext removed. (which is what the original file
+ * being renamed to).
+ */
+string removeExtAndRename(string_view fileName) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
-    const auto& mergedFilePath = filePath / mergedFileName;
-    if (!filesystem::exists(filePath)) {
+    const auto& fullFilePath = filePath / fileName;
+    if (!filesystem::exists(fullFilePath)) {
         log::errorAndThrow(
-            "Trying to mark a non-existing merged SSTable file as active: ",
-            filePath);
+            "Non-existing file path while trying to remove ext and rename: ",
+            fullFilePath);
     }
-    auto activeFilePath = mergedFilePath;
-    activeFilePath.replace_extension();
-    filesystem::rename(mergedFilePath, activeFilePath);
-    return activeFilePath.filename().string();
+    auto rtn = fullFilePath;
+    rtn.replace_extension();
+    filesystem::rename(fullFilePath, rtn);
+    return rtn.filename().string();
 }
 
 void removeDeprecatedFiles() {
-    for_each(
-        begin(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
-        end(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
-        [](auto& p) {
-            if (p.path().extension() == "." + db_config::DEPRECATED_FILE_TYPE) {
-                log::debug("Will remove deprecated file: ", p.path());
-                filesystem::remove(p.path());
-            }
-        });
+    for_each(begin(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             end(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             [](auto& p) {
+                 if (p.path().extension() == db_config::DEPRECATED_FILE_EXT) {
+                     log::debug("Will remove deprecated file: ", p.path());
+                     filesystem::remove(p.path());
+                 }
+             });
 }
 
 }  // namespace projectdb

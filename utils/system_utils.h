@@ -22,13 +22,14 @@ timestamp_unit_type getTimeSinceEpoch();
 string genSSTableFileName();
 string genTransactionLogFileName();
 
+string genFlushInProgressSSTableFileName(string_view baseFileName);
 string genMergedSSTableFileName(string_view baseFileName);
 
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode);
 
 void markFileAsDeprecated(string_view baseFileName);
-// Remove the .merged extension so that the merged SSTable files will be in use.
-string markMergedSSTableFileAsActive(string_view mergedFileName);
+
+string removeExtAndRename(string_view fileName);
 
 void removeDeprecatedFiles();
 

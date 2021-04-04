@@ -21,21 +21,26 @@ using namespace projectdb;
 void test() {
     //    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024;
     //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 16 * 1024;
-    //    db_config::NUM_SSTABLE_TO_COMPACT = 10;
+    //    db_config::NUM_SSTABLE_TO_COMPACT = 2;
     //    db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024 * 1024;
 
+    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 100;
+    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 50;
+    db_config::NUM_SSTABLE_TO_COMPACT = 2;
+    db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 400;
+
     ProjectDb db;
-    for (auto i = 0; i < 100000; i++) {
+    for (auto i = 0; i < 5000; i++) {
         db.set(to_string(i), to_string(i) + " Hello World!");
     }
     this_thread::sleep_for(std::chrono::seconds(1));
-    for (auto i = 0; i < 100000; i++) {
+    for (auto i = 0; i < 5000; i++) {
         if (i % 2 == 0) {
             db.remove(to_string(i));
         }
     }
     this_thread::sleep_for(std::chrono::seconds(1));
-    for (auto i = 100000 - 1; i >= 0; i--) {
+    for (auto i = 5000 - 1; i >= 0; i--) {
         db.get(to_string(i));
     }
 }
