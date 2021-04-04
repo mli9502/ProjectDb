@@ -12,8 +12,11 @@
 
 namespace projectdb {
 
-SSTableIndex::SSTableIndex(string ssTableFileName)
-    : m_ssTableFileName(move(ssTableFileName)) {}
+void SSTableIndex::setSSTableFileName(string_view fileName) {
+    m_ssTableFileName = fileName;
+}
+
+string SSTableIndex::getSSTableFileName() const { return m_ssTableFileName; }
 
 void SSTableIndex::addIndex(Table::key_type key, ios::pos_type pos) {
     m_index[move(key)] = pos;

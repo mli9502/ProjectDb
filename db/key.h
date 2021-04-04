@@ -54,6 +54,8 @@ class Key {
 
     [[nodiscard]] unsigned getApproximateSizeInBytes() const;
 
+    bool operator<(const Key& rhs) const;
+
     friend ostream& operator<<(ostream& os, const Key& key);
     friend bool operator==(const Key& lhs, const Key& rhs);
 

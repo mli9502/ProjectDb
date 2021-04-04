@@ -7,6 +7,9 @@ init_build:
 	-@rm -rf $(CMAKE_DIR)
 	mkdir $(CMAKE_DIR) && cd $(CMAKE_DIR) && cmake -DCMAKE_BUILD_TYPE=$(shell echo $(BUILD) | sed 's/./\U&/') ..
 
+projectdb:
+	cd $(CMAKE_DIR) && cmake --build . --target projectdb
+
 main:
 	cd $(CMAKE_DIR) && cmake --build . --target main
 
