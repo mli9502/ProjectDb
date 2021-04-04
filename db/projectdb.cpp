@@ -15,31 +15,29 @@ namespace projectdb {
 class ProjectDbImpl {
    public:
     optional<string> get(const string& key) {
-        checkSSTableCompactionFuture();
-        checkFlushToDiskFutures();
+        checkFutures();
 
         const auto& memTableRtn = m_memTableQueue.get(key);
         if (memTableRtn.has_value()) {
-            log::debug("Found key: [", key, "] in MemTableQueue with Value: [",
-                       memTableRtn.value(), "]");
+            log::info("Found key: [", key, "] in MemTableQueue with Value: [",
+                      memTableRtn.value(), "]");
             return memTableRtn.value().underlyingValue();
         }
 
         const auto& ssTableRtn = m_ssTableIndexQueue.get(key);
         if (ssTableRtn.has_value()) {
-            log::debug("Found key: [", key,
-                       "] in SSTableIndexQueue with Value: [",
-                       ssTableRtn.value(), "]");
+            log::info("Found key: [", key,
+                      "] in SSTableIndexQueue with Value: [",
+                      ssTableRtn.value(), "]");
             return ssTableRtn.value().underlyingValue();
         }
 
-        log::debug("Key: [", key, "] not found.");
+        log::info("Key: [", key, "] not found.");
         return {};
     }
 
     void set(const string& key, const string& value) {
-        checkSSTableCompactionFuture();
-        checkFlushToDiskFutures();
+        checkFutures();
 
         auto&& ft = m_memTableQueue.set(key, value);
         if (ft.has_value()) {
@@ -49,8 +47,7 @@ class ProjectDbImpl {
     }
 
     void remove(const string& key) {
-        checkSSTableCompactionFuture();
-        checkFlushToDiskFutures();
+        checkFutures();
 
         auto&& ft = m_memTableQueue.remove(key);
         if (ft.has_value()) {
@@ -67,6 +64,23 @@ class ProjectDbImpl {
     vector<future<SSTableIndex>> m_flushToDiskFutures;
     optional<future<vector<SSTableIndex>>> m_ssTableCompactionFuture;
 
+    void checkFutures() {
+        bool hasCompactionRunning = checkSSTableCompactionFuture();
+        // When a compaction is running in a separate thread, we CAN'T call
+        // checkFlushToDiskFutures. This is because both
+        // checkFlushToDiskFutures, and compaction will update
+        // m_ssTableIndexQueue. Calling checkFlushToDiskFutures while compaction
+        // is running will cause a race condition, and will lead to iterators
+        // being invalidated. This means that we will not flush MemTable to disk
+        // during compaction.
+        if (hasCompactionRunning) {
+            log::debug(
+                "Compaction is running, will not try checkFlushToDiskFutures.");
+        } else {
+            checkFlushToDiskFutures();
+        }
+    }
+
     /**
      * Go through m_flushToDiskFutures to process the finished ones.
      * NOTE: @mli:
@@ -76,6 +90,7 @@ class ProjectDbImpl {
      * SSTableIndexQueue to contain out-of-order SSTableIndex.
      */
     void checkFlushToDiskFutures() {
+        log::debug("In checkFlushToDiskFutures");
         auto it = m_flushToDiskFutures.begin();
         while (it != m_flushToDiskFutures.end()) {
             if (it->wait_for(chrono::seconds(0)) != future_status::ready) {
@@ -84,21 +99,27 @@ class ProjectDbImpl {
             auto ssTableIndex = it->get();
             log::debug("Got SSTableIndex for SSTable: ",
                        ssTableIndex.getSSTableFileName());
-            auto&& ft = m_ssTableIndexQueue.insert(move(ssTableIndex));
-            if (ft.has_value()) {
-                if (m_ssTableCompactionFuture.has_value()) {
-                    log::debug(
-                        "Already an SSTable compaction job in progress. Will "
-                        "not start another one.");
-                } else {
-                    log::debug("Starting SSTable compaction job.");
-                    m_ssTableCompactionFuture = move(ft.value());
-                }
-            }
+            m_ssTableIndexQueue.insert(move(ssTableIndex));
             // Remove the corresponding MemTable and TransactionLog.
             m_memTableQueue.pop();
             it = m_flushToDiskFutures.erase(it);
         }
+        // NOTE: @mli: Compaction is launched only when all the updates to
+        // m_ssTableIndexQueue are done. Since both this method, and
+        // tryLaunchCompaction will modify m_ssTableIndexQueue, we have to
+        // guarantee that the queue is only updated by one of these at any given
+        // time, otherwise, the pointer will be invalidated.
+        // Also note that we can start the flushToDisk job, since it just
+        // returns the SSTableIndex without modifying the ssTableIndexQueue.
+        // However, we can't call checkFlushToDiskFutures while compaction job
+        // is running, since checkFlushToDiskFutures will update the queue.
+        log::debug("Try starting SSTable compaction job.");
+        auto&& ft = m_ssTableIndexQueue.tryLaunchCompaction();
+        if (ft.has_value()) {
+            log::debug("Starting SSTable compaction job.");
+            m_ssTableCompactionFuture = move(ft.value());
+        }
+        log::debug("checkFlushToDiskFutures done.");
     }
 
     /**
@@ -106,23 +127,26 @@ class ProjectDbImpl {
      * This is because new compaction depends on the result of previous
      * compaction, since the new SSTables might be compacted into the last one
      * from previous compaction.
+     * Returns true if there's currently a compaction job running.
      */
-    void checkSSTableCompactionFuture() {
+    bool checkSSTableCompactionFuture() {
         if (!m_ssTableCompactionFuture.has_value()) {
-            return;
+            return false;
         }
         if (m_ssTableCompactionFuture.value().wait_for(chrono::seconds(0)) !=
             future_status::ready) {
-            return;
+            return true;
         }
         auto ssTableIndexAfterCompaction =
             m_ssTableCompactionFuture.value().get();
         m_ssTableIndexQueue.update(move(ssTableIndexAfterCompaction));
         m_ssTableCompactionFuture = {};
+        return false;
     }
 };
 
 ProjectDb::ProjectDb() : m_impl(make_unique<ProjectDbImpl>()) {}
+ProjectDb::~ProjectDb() = default;
 
 optional<string> ProjectDb::get(const string& key) { return m_impl->get(key); }
 void ProjectDb::set(const string& key, const string& value) {

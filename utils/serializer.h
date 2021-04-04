@@ -143,7 +143,7 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
 
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
-        log::debug("Serializing Serializable data: ", t);
+        //        log::debug("Serializing Serializable data: ", t);
         t.serializeImpl(os);
         if (!os) {
             log::errorAndThrow("Failed to serialize Serializable data!");
@@ -161,8 +161,8 @@ class DeserializationWrapper<T> {
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
         }
-        log::debug("Successfully deserialized blob into Serializable data: ",
-                   rtn);
+        //        log::debug("Successfully deserialized blob into Serializable
+        //        data: ", rtn);
         return rtn;
     }
 };
@@ -177,7 +177,7 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
 
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
-        log::debug("Serializing Pair data: ", t);
+        //        log::debug("Serializing Pair data: ", t);
         // Serialize .first and .second.
         /**
          * NOTE: @mli:
@@ -210,7 +210,8 @@ class DeserializationWrapper<T> {
         typename T::second_type second =
             DeserializationWrapper<typename T::second_type>()(is);
         T rtn{first, second};
-        log::debug("Successfully deserialized blob into Pair data: ", rtn);
+        //        log::debug("Successfully deserialized blob into Pair data: ",
+        //        rtn);
         return rtn;
     }
 };
@@ -225,7 +226,7 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
 
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
-        log::debug("Serializing SerializableContainer data: ", t);
+        //        log::debug("Serializing SerializableContainer data: ", t);
         SerializationWrapper<size_type>(t.size())(os);
         // Then, serialize each element in container.
         for (auto it = t.begin(); it != t.end(); it++) {
@@ -238,7 +239,7 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
     requires IndexBuilderInvocable<InvocableT, T> void operator()(
         ostream& os, InvocableT tryBuildIndex) && {
         const T& t = this->getCRefT();
-        log::debug("Serializing SerializableContainer data: ", t);
+        //        log::debug("Serializing SerializableContainer data: ", t);
         SerializationWrapper<size_type>(t.size())(os);
         streamsize currBlockSize = 0;
         auto prevPos = os.tellp();
@@ -277,9 +278,8 @@ class DeserializationWrapper<T> {
             rtn.insert(rtn.end(),
                        DeserializationWrapper<container_value_type>{}(is));
         }
-        log::debug(
-            "Successfully deserialized blob into SerializableContainer data: ",
-            rtn);
+        //        log::debug("Successfully deserialized blob into
+        //        SerializableContainer data: ", rtn);
         return rtn;
     }
 
@@ -304,9 +304,8 @@ class DeserializationWrapper<T> {
                 currBlockSize = 0;
             }
         }
-        log::debug(
-            "Successfully deserialized blob into SerializableContainer data: ",
-            rtn);
+        //        log::debug("Successfully deserialized blob into
+        //        SerializableContainer data: ", rtn);
         return rtn;
     }
 
@@ -319,8 +318,8 @@ class DeserializationWrapper<T> {
                        DeserializationWrapper<container_value_type>{}(is));
             currPos = is.tellg();
         }
-        log::debug("Successfully deserialized entries in pos range [", start,
-                   ", ", end, "): ", rtn);
+        //        log::debug("Successfully deserialized entries in pos range [",
+        //        start, ", ", end, "): ", rtn);
         return rtn;
     }
 

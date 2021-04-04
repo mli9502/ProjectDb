@@ -27,10 +27,8 @@ optional<Table::mapped_type> SSTableIndexQueue::get(string_view key) {
     return {};
 }
 
-optional<future<vector<SSTableIndex>>> SSTableIndexQueue::insert(
-    SSTableIndex&& ssTableIndex) {
+void SSTableIndexQueue::insert(SSTableIndex&& ssTableIndex) {
     m_queue.emplace_back(move(ssTableIndex));
-    return tryLaunchCompaction();
 }
 
 void SSTableIndexQueue::update(
@@ -87,17 +85,22 @@ SSTableIndexQueue::tryLaunchCompaction() {
         log::info("NUM_SSTABLE_TO_COMPACT <= 0, compaction is disabled.");
         return {};
     }
-    auto newlyAddedSSTablesCnt = m_queue.size() - m_compactionStartIndex - 1;
+    // NOTE: @mli: Using int here to make sure that we could get negative value
+    // when the queue is empty for example.
+    int newlyAddedSSTablesCnt = m_queue.size() - m_compactionStartIndex - 1;
     log::debug("Newly added SSTable count is: ", newlyAddedSSTablesCnt);
-    if (newlyAddedSSTablesCnt < db_config::NUM_SSTABLE_TO_COMPACT) {
+    if (newlyAddedSSTablesCnt <
+        static_cast<int>(db_config::NUM_SSTABLE_TO_COMPACT)) {
         log::debug("Will not start compaction.");
         return {};
     }
-    log::debug("Starting compaction...");
+    log::debug("Starting compaction with m_compactionStartIndex: ",
+               m_compactionStartIndex, "; m_queue.size(): ", m_queue.size(),
+               "; NUM_SSTABLE_TO_COMPACT: ", db_config::NUM_SSTABLE_TO_COMPACT);
     return async(launch::async, [&]() {
         return mergeSSTables(m_queue.begin() + m_compactionStartIndex,
-                             m_queue.begin() + m_compactionStartIndex + 1 +
-                                 db_config::NUM_SSTABLE_TO_COMPACT);
+                             m_queue.begin() + m_compactionStartIndex +
+                                 db_config::NUM_SSTABLE_TO_COMPACT + 1);
     });
 }
 

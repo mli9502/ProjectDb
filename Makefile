@@ -1,6 +1,8 @@
 BUILD := debug
 CMAKE_DIR := cmake-build-${BUILD}
 
+# For release build, use command "make BUILD=release <target>".
+
 .PHONY: init_build main run_main tests run_tests build_and_run_docker pdf_regen_all zip_files clean
 
 init_build:

@@ -42,13 +42,11 @@ string genTransactionLogFileName() {
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
     if (((ioMode & ios::out) != 0) || ((ioMode & ios::app) != 0)) {
-        log::debug(
-            "out or app mode, try creating directory to make sure that it "
-            "exists.");
         try {
             filesystem::create_directories(filePath);
         } catch (const exception& e) {
-            log::errorAndThrow(e.what());
+            log::errorAndThrow("Failed to get file stream for file: ",
+                               baseFileName, " with exception: ", e.what());
         }
     }
     filePath /= baseFileName;
@@ -77,7 +75,7 @@ string markMergedSSTableFileAsActive(string_view mergedFileName) {
             filePath);
     }
     auto activeFilePath = mergedFilePath;
-    activeFilePath.replace_extension(db_config::MERGED_SSTABLE_FILE_TYPE);
+    activeFilePath.replace_extension();
     filesystem::rename(mergedFilePath, activeFilePath);
     return activeFilePath.filename().string();
 }

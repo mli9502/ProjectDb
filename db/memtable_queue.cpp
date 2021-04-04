@@ -83,13 +83,10 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
     }
     log::debug(
         "MemTable needs to be flushed to disk. Adding a new MemTable to queue "
-        "and start async job to flush current MemTable to disk...");
+        "and start async job to flush current MemTable to disk as SSTable, and "
+        "generate SSTableIndex.");
     m_queue.emplace_back();
     return async(launch::async, [&]() {
-        log::debug(
-            "Build SSTable, flush it to disk and build SSTableIndex from "
-            "memTable...");
-
         return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
     });
 }

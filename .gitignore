@@ -6,3 +6,4 @@ cmake-*/
 *.pdf
 *.diff
 html/
+debug.log

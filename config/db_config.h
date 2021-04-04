@@ -41,6 +41,13 @@ extern unsigned NUM_SSTABLE_TO_COMPACT;
 // size of SSTable on disk is larger than this.
 extern unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
 
+// This controls whether SSTableIndex internally holds an ifstream of the
+// corresponding SSTable file, and keeps SSTable file open. When set to true,
+// this will make 'get' operation performs better. However, this could lead to
+// too many file handles open exception depending on OS that the db runs on.
+// This is by default disabled.
+extern bool KEEP_SSTABLE_FILE_OPEN;
+
 // Variables inside impl namespace are parameters that are updated
 // __internally__ by database. These vars SHOULD NOT be exposed for users to
 // modify.
