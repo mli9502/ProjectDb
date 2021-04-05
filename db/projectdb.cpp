@@ -7,6 +7,7 @@
 #include "log.h"
 #include "memtable_queue.h"
 #include "sstable_index_queue.h"
+#include "system_utils.h"
 
 using namespace std;
 
@@ -38,19 +39,19 @@ optional<string> ProjectDbImpl::get(const string& key) {
 
     const auto& memTableRtn = m_memTableQueue.get(key);
     if (memTableRtn.has_value()) {
-        log::info("Found key: [", key, "] in MemTableQueue with Value: [",
-                  memTableRtn.value(), "]");
+        log::debug("Found key: [", key, "] in MemTableQueue with Value: [",
+                   memTableRtn.value(), "]");
         return memTableRtn.value().underlyingValue();
     }
 
     const auto& ssTableRtn = m_ssTableIndexQueue.get(key);
     if (ssTableRtn.has_value()) {
-        log::info("Found key: [", key, "] in SSTableIndexQueue with Value: [",
-                  ssTableRtn.value(), "]");
+        log::debug("Found key: [", key, "] in SSTableIndexQueue with Value: [",
+                   ssTableRtn.value(), "]");
         return ssTableRtn.value().underlyingValue();
     }
 
-    log::info("Key: [", key, "] not found.");
+    log::debug("Key: [", key, "] not found.");
     return {};
 }
 
@@ -119,10 +120,10 @@ void ProjectDbImpl::checkFlushToDiskFutures() {
         auto ssTableIndex = it->get();
         log::debug("Got SSTableIndex for SSTable: ",
                    ssTableIndex.getSSTableFileName());
+        ssTableIndex.setSSTableFileName(
+            removeExtAndRename(ssTableIndex.getSSTableFileName()));
         m_ssTableIndexQueue.insert(move(ssTableIndex));
-        // TODO: @mli: In here, mark the SSTable as active by removing the
-        // inprogress suffix. Remove the corresponding MemTable and
-        // TransactionLog.
+        // Remove the corresponding MemTable and TransactionLog.
         m_memTableQueue.pop();
         it = m_flushToDiskFutures.erase(it);
     }
@@ -169,9 +170,11 @@ ProjectDb::ProjectDb() : m_impl(make_unique<ProjectDbImpl>()) {}
 ProjectDb::~ProjectDb() = default;
 
 optional<string> ProjectDb::get(const string& key) { return m_impl->get(key); }
+
 void ProjectDb::set(const string& key, const string& value) {
     return m_impl->set(key, value);
 }
+
 void ProjectDb::remove(const string& key) { return m_impl->remove(key); }
 
 }  // namespace projectdb

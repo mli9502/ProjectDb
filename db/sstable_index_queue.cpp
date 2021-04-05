@@ -102,11 +102,11 @@ SSTableIndexQueue::tryLaunchCompaction() {
     log::debug("Starting compaction with m_compactionStartIndex: ",
                m_compactionStartIndex, "; m_queue.size(): ", m_queue.size(),
                "; NUM_SSTABLE_TO_COMPACT: ", db_config::NUM_SSTABLE_TO_COMPACT);
-    return async(launch::async, [&]() {
-        return mergeSSTables(m_queue.begin() + m_compactionStartIndex,
-                             m_queue.begin() + m_compactionStartIndex +
-                                 db_config::NUM_SSTABLE_TO_COMPACT + 1);
-    });
+    auto beginIt = m_queue.begin() + m_compactionStartIndex;
+    auto endIt = m_queue.begin() + m_compactionStartIndex +
+                 db_config::NUM_SSTABLE_TO_COMPACT + 1;
+    return async(launch::async,
+                 [beginIt, endIt]() { return mergeSSTables(beginIt, endIt); });
 }
 
 }  // namespace projectdb

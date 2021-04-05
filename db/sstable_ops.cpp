@@ -12,6 +12,26 @@ namespace projectdb {
 
 namespace {
 
+/**
+ * NOTE: @mli:
+ * It is important that when we do compaction, we can't blindly remove all
+ * entries with TOMBSTONE value. Consider this situation, we have 4 SSTables,
+ * and the size limitation requires us to compact the first 2, and then the
+ * second 2. If a key contains a value in table 1, and is marked as TOMBSTONE in
+ * table 3, the, if we remove all entries that's TOMBSTONE during compaction,
+ * merged table 1 will still has this value (due to 3 not merged with 1), but
+ * merged table 3 will not have a TOMBSTONE entry for this key. This will cause
+ * that even the key is already deleted, it will re-appear when get.
+ *
+ * To fix this, during compaction, we can only remove the entry from the merged
+ * table if we see the value first, then see a TOMBSTONE. For TOMBSTONE that
+ * does not correspond to a value, we have to still keep them in the merged
+ * table.
+ *
+ * @param oldSSTable
+ * @param newSSTable
+ * @return
+ */
 unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
                                  const SSTable& newSSTable) {
     const Table::value_type& oldTable = oldSSTable.table().get();
@@ -31,7 +51,11 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
             mergedTable.emplace(*newIt);
             newIt++;
         } else {
-            mergedTable.emplace(*newIt);
+            // When key exists in both newTable and oldTable, we only add it to
+            // mergedTable if it's not TOMBSTONE.
+            if (!newIt->second.isTombstoneValue()) {
+                mergedTable.emplace(*newIt);
+            }
             oldIt++;
             newIt++;
         }
@@ -47,14 +71,6 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
         newIt++;
     }
 
-    // Go through merged table and remove all entries with TOMBSTONE value.
-    for (auto it = mergedTable.cbegin(); it != mergedTable.cend();) {
-        if (it->second.isTombstoneValue()) {
-            it = mergedTable.erase(it);
-        } else {
-            it++;
-        }
-    }
     //    log::debug("oldTable: ", oldTable);
     //    log::debug("newTable: ", newTable);
     //    log::debug("mergedTable: ", mergedTable);
@@ -85,9 +101,13 @@ SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName) {
                 return true;
             });
         rtn.setEofPos(ofs.tellp());
+        // Need to flush here to make sure that file is there.
+        ofs.flush();
     }
 
     rtn.setSSTableFileName(fileName);
+    // Wait to make sure that the file is actually there.
+    waitUntilFileExist(fileName);
     return rtn;
 }
 

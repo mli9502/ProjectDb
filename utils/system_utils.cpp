@@ -4,6 +4,8 @@
 
 #include "system_utils.h"
 
+#include <thread>
+
 #include "log.h"
 
 namespace projectdb {
@@ -25,9 +27,13 @@ timestamp_unit_type getTimeSinceEpoch() {
         chrono::system_clock::now().time_since_epoch());
 }
 
-string genSSTableFileName() {
-    return genFileName(db_config::impl::SSTABLE_FILE_COUNTER_BASE++,
-                       db_config::SSTABLE_FILE_EXT);
+// NOTE: @mli: We can't directly use (++
+// db_config::impl::SSTABLE_FILE_COUNTER_BASE) in here, because it's possible
+// that there are multiple tryFlushToDisk job launched together, which will
+// cause a read-modify-write race condition for SSTABLE_FILE_COUNTER_BASE.
+string genSSTableFileName(unsigned ssTableFileCounter) {
+    //    log::info("ssTableFileCounter: ", ssTableFileCounter);
+    return genFileName(ssTableFileCounter, db_config::SSTABLE_FILE_EXT);
 }
 
 string genFlushInProgressSSTableFileName(string_view baseFileName) {
@@ -100,6 +106,23 @@ void removeDeprecatedFiles() {
                      filesystem::remove(p.path());
                  }
              });
+}
+
+void waitUntilFileExist(string_view fileName) {
+    filesystem::path filePath(db_config::DB_FILE_PATH);
+    const auto& fullFilePath = filePath / fileName;
+    //    log::info("Waiting for: ", fullFilePath);
+    while (true) {
+        try {
+            if (filesystem::exists(fullFilePath)) {
+                break;
+            }
+        } catch (const exception& e) {
+            log::debug("Caught exception while waiting for file: [",
+                       fullFilePath, "] to be on disk.");
+        }
+        this_thread::sleep_for(chrono::milliseconds(100));
+    }
 }
 
 }  // namespace projectdb
