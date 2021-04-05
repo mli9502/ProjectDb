@@ -1,9 +1,6 @@
 //
 // Created by smao on 3/29/21.
 //
-#include <iostream>
-#include "project_db.h"
-#include "random.h"
 #include "bench.h"
 
 using namespace std;
@@ -40,7 +37,7 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 		int col = 0;
 		stringstream s(line);
 
-		while (getline(s, word, ', ') && col<=val_col) {
+		while (getline(s, word, ',') && col<=val_col) {
 			if (col == 0)
 				kvp.first = word;
 			if (col == val_col)
@@ -48,6 +45,33 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 			++col;
 		}
 		kvs.push_back(kvp);
+		--size;
+	}
+}
+
+/**
+ * Directly reads csv data into db.
+ */
+void csv_db (const string fname, ProjectDb db, int val_col, int size)
+{
+	fstream fin;
+	string line, temp, key, value;
+
+	fin.open(fname, ios::in);
+
+	while (fin >> temp && size>0) {
+		getline(fin, line);
+		int col = 0;
+		stringstream s(line);
+
+		while (getline(s, word, ',') && col<=val_col) {
+			if (col == 0)
+				key = word;
+			if (col == val_col)
+				value = word;
+			++col;
+		}
+		db.set(key,word);
 		--size;
 	}
 }
@@ -139,7 +163,11 @@ duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
 	return stop - start;
 }
 
-struct bench_stat run_bench(ProjectDb& db, int trials, int seed, int size, int len)
+/*
+ * Runs the benchmarks described in the header file.
+ * The db is cleared after every benchmark to ensure consistency.
+ */
+struct bench_stat run_bench(ProjectDb& db int seed, int size, int len)
 {
 	kvp_vec kvs = gen_rand(seed, size, len);
 	kvp_vec sorted = copy_sorted(kvs);
