@@ -56,12 +56,17 @@ void SSTableIndexQueue::update(
     m_queue.erase(m_queue.begin() + m_compactionStartIndex,
                   m_queue.begin() + m_compactionStartIndex + 1 +
                       db_config::NUM_SSTABLE_TO_COMPACT);
+    // TODO: @mli: Need to look more into this latter. If we crash here, we
+    // can't recover everything just by loading .sst files. We might also need
+    // to load all the .deprecated files to be sure. Also, during init, we need
+    // to go through all MemTable to retry flushToDisk, otherwise, some of them
+    // might stuck in memory.
 
     // Rename all merged SSTable files to normal SSTable files.
     for_each(ssTableIndexAfterCompaction.begin(),
              ssTableIndexAfterCompaction.end(), [](auto& ssTableIndex) {
-                 ssTableIndex.setSSTableFileName(markMergedSSTableFileAsActive(
-                     ssTableIndex.getSSTableFileName()));
+                 ssTableIndex.setSSTableFileName(
+                     removeExtAndRename(ssTableIndex.getSSTableFileName()));
              });
 
     // The updated compactionStartIndex points to the index that represents the
@@ -97,11 +102,11 @@ SSTableIndexQueue::tryLaunchCompaction() {
     log::debug("Starting compaction with m_compactionStartIndex: ",
                m_compactionStartIndex, "; m_queue.size(): ", m_queue.size(),
                "; NUM_SSTABLE_TO_COMPACT: ", db_config::NUM_SSTABLE_TO_COMPACT);
-    return async(launch::async, [&]() {
-        return mergeSSTables(m_queue.begin() + m_compactionStartIndex,
-                             m_queue.begin() + m_compactionStartIndex +
-                                 db_config::NUM_SSTABLE_TO_COMPACT + 1);
-    });
+    auto beginIt = m_queue.begin() + m_compactionStartIndex;
+    auto endIt = m_queue.begin() + m_compactionStartIndex +
+                 db_config::NUM_SSTABLE_TO_COMPACT + 1;
+    return async(launch::async,
+                 [beginIt, endIt]() { return mergeSSTables(beginIt, endIt); });
 }
 
 }  // namespace projectdb

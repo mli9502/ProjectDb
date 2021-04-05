@@ -16,10 +16,13 @@ string DB_FILE_PREFIX = "project_db";
 // Default to write to current directory.
 string DB_FILE_PATH = "./projectdb";
 
-string SSTABLE_FILE_TYPE = "sst";
-string TRANSACTION_LOG_FILE_TYPE = "txl";
-string MERGED_SSTABLE_FILE_TYPE = "merged";
-string DEPRECATED_FILE_TYPE = "deprecated";
+string SSTABLE_FILE_EXT = ".sst";
+string SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT = ".ip";
+string MERGED_SSTABLE_FILE_EXT = ".merged";
+
+string TRANSACTION_LOG_FILE_EXT = ".txl";
+
+string DEPRECATED_FILE_EXT = ".deprecated";
 
 unsigned NUM_SSTABLE_TO_COMPACT = 5;
 unsigned SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 4 * 1024 * 1024;  // 4 mb
