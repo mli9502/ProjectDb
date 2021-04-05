@@ -1,3 +1,6 @@
+#ifndef BENCHMARKS
+#define BENCHMARKS
+
 #include <chrono>
 #include <iostream>
 #include <vector>
@@ -41,3 +44,5 @@ void csv_db (const string fname, ProjectDb db, int val_col, int size);
 
 // Benchmark test
 struct bench_stat run_bench(ProjectDb& db, int trials, int seed, int size, int len);
+
+#endif

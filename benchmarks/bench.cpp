@@ -1,7 +1,16 @@
 //
 // Created by smao on 3/29/21.
 //
+#include <chrono>
+#include <iostream>
+#include <vector>
+#include <fstream>
+#include <string>
+#include <sstream>
+
+#include "projectdb/projectdb.h"
 #include "bench.h"
+#include "random.h"
 
 using namespace std;
 using namespace projectdb;
@@ -47,6 +56,7 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 		kvs.push_back(kvp);
 		--size;
 	}
+	return kvs;
 }
 
 /**
@@ -55,7 +65,7 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 void csv_db (const string fname, ProjectDb db, int val_col, int size)
 {
 	fstream fin;
-	string line, temp, key, value;
+	string line, temp, word, key, value;
 
 	fin.open(fname, ios::in);
 
@@ -79,9 +89,9 @@ void csv_db (const string fname, ProjectDb db, int val_col, int size)
 /**
  * Pass in key value pairs by copy and sorts them
  */
-kvp_vec copy_sort(const kvp_vec& kvs)
+kvp_vec copy_sort(const kvp_vec kvs)
 {
-	kvp_vec sorted = copy(kvs.begin(),kvs.end());
+	kvp_vec sorted = kvs;
 	sort(sorted.begin(),sorted.end());
 	return sorted;
 }
@@ -90,12 +100,12 @@ kvp_vec copy_sort(const kvp_vec& kvs)
  * Generates a random string of length len;
  * used for generating values.
  */
-string random_str(const Random &rnd, int len)
+string random_str(Random &rnd, int len)
 {
-	string ret(len);
+	string ret;
 
 	for (int i=0; i<len; i++) {
-		ret[i] = static_cast<char>(' ' + rnd.Uniform(95));  // ' ' .. '~'
+		ret = static_cast<char>(' ' + rnd.Uniform(95));  // ' ' .. '~'
 	}
 	return ret;
 }
@@ -103,16 +113,16 @@ string random_str(const Random &rnd, int len)
 /**
  * Generates a random key of length len.
  */
-string random_key(const Random &rnd, int len)
+string random_key(Random &rnd, int len)
 {
 	// Make sure to generate a wide variety of characters so we
 	// test the boundary conditions for short-key optimizations.
 	static const char kTestChars[] = {'\0', '\1', 'a',    'b',    'c',
 									'd',  'e',  '\xfd', '\xfe', '\xff'};
-	string ret(len);
+	string ret;
 
 	for (int i = 0; i < len; i++) {
-		ret[i] += kTestChars[rnd.Uniform(sizeof(kTestChars))];
+		ret += kTestChars[rnd.Uniform(sizeof(kTestChars))];
 	}
 	return ret;
 	
@@ -122,9 +132,9 @@ string random_key(const Random &rnd, int len)
  * Generates size number of key value pairs of length len
  * and returns them in a vector.
  */
-kvp_vec gen_rand(int seed, int size, int len)
+kvp_vec gen_rand(int size, int len)
 {
-	Random rnd(seed);
+	Random rnd(301);
 	kvp_vec kvs;
 	pair<string,string> kvp;
 
@@ -136,16 +146,16 @@ kvp_vec gen_rand(int seed, int size, int len)
 	return kvs;
 }
 
-duration<double> clear_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> clear_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
-		db.delete(db);
+		db.remove(pair.first);
 	auto stop = chrono::steady_clock::now();
 	return stop - start;
 }
 
-duration<double> write_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> write_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
@@ -154,7 +164,7 @@ duration<double> write_db (ProjectDb& db, const kvp_vec& kvs)
 	return stop - start;
 }
 
-duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
@@ -167,10 +177,10 @@ duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
  * Runs the benchmarks described in the header file.
  * The db is cleared after every benchmark to ensure consistency.
  */
-struct bench_stat run_bench(ProjectDb& db int seed, int size, int len)
+struct bench_stats run_bench(ProjectDb& db, int size, int len)
 {
-	kvp_vec kvs = gen_rand(seed, size, len);
-	kvp_vec sorted = copy_sorted(kvs);
+	kvp_vec kvs = gen_rand(size, len);
+	kvp_vec sorted = copy_sort(kvs);
 	struct bench_stats bs;
 
 	write_db(db, sorted);
@@ -179,7 +189,7 @@ struct bench_stat run_bench(ProjectDb& db int seed, int size, int len)
 	bs.fillseq = write_db(db, sorted);
 	clear_db(db, sorted);
 
-	bs.fillrand = write_db(db, kvs);
+	bs.fillrandom = write_db(db, kvs);
 	clear_db(db, sorted);
 
 	write_db(db, sorted);

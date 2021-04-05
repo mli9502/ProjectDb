@@ -1,7 +1,7 @@
 // Copyright (c) 2011 The LevelDB Authors. All rights reserved.
 
-#ifndef STORAGE_LEVELDB_UTIL_RANDOM_H_
-#define STORAGE_LEVELDB_UTIL_RANDOM_H_
+#ifndef STORAGE_PROJECTDB_UTIL_RANDOM_H_
+#define STORAGE_PROJECTDB_UTIL_RANDOM_H_
 
 #include <cstdint>
 
@@ -58,4 +58,4 @@ class Random {
 
 }  // namespace leveldb
 
-#endif  // STORAGE_LEVELDB_UTIL_RANDOM_H_
+#endif  // STORAGE_PROJECTDB_UTIL_RANDOM_H_
