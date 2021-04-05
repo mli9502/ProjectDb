@@ -86,8 +86,16 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
         "and start async job to flush current MemTable to disk as SSTable, and "
         "generate SSTableIndex.");
     m_queue.emplace_back();
-    return async(launch::async, [&]() {
-        return flushSSTable(SSTable(memTable.getTable()), genSSTableFileName());
+    auto currTable = memTable.getTable();
+    unsigned currSSTableFileCounter =
+        ++db_config::impl::SSTABLE_FILE_COUNTER_BASE;
+    // NOTE: @mli: In here we CAN'T capture by reference, because
+    // currSSTableFileCounter will be destructed as soon as thread launches,
+    // resulting in a garbage value.
+    return async(launch::async, [currTable, currSSTableFileCounter]() {
+        return flushSSTable(SSTable(currTable),
+                            genFlushInProgressSSTableFileName(
+                                genSSTableFileName(currSSTableFileCounter)));
     });
 }
 
