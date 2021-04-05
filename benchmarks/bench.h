@@ -40,9 +40,9 @@ struct bench_stats {
 // Useful functions for managing csv
 void print_db(ProjectDb& db, const kvp_vec& kvs);
 kvp_vec read_csv(const string fname, int val_col, int size);
-void csv_db (const string fname, ProjectDb db, int val_col, int size);
+void csv_db (const string fname, ProjectDb& db, int val_col, int size);
 
 // Benchmark test
-struct bench_stat run_bench(ProjectDb& db, int trials, int seed, int size, int len);
+struct bench_stats run_bench(ProjectDb& db, int size, int len);
 
 #endif

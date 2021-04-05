@@ -62,7 +62,7 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 /**
  * Directly reads csv data into db.
  */
-void csv_db (const string fname, ProjectDb db, int val_col, int size)
+void csv_db (const string fname, ProjectDb& db, int val_col, int size)
 {
 	fstream fin;
 	string line, temp, word, key, value;
@@ -105,7 +105,7 @@ string random_str(Random &rnd, int len)
 	string ret;
 
 	for (int i=0; i<len; i++) {
-		ret = static_cast<char>(' ' + rnd.Uniform(95));  // ' ' .. '~'
+		ret += static_cast<char>(' ' + rnd.Uniform(95));  // ' ' .. '~'
 	}
 	return ret;
 }
@@ -142,6 +142,7 @@ kvp_vec gen_rand(int size, int len)
 		kvp.first = random_key(rnd, len);
 		kvp.second = random_str(rnd, len);
 		kvs.push_back(kvp);
+		--size;
 	}
 	return kvs;
 }
@@ -183,32 +184,45 @@ struct bench_stats run_bench(ProjectDb& db, int size, int len)
 	kvp_vec sorted = copy_sort(kvs);
 	struct bench_stats bs;
 
-	write_db(db, sorted);
-	clear_db(db, sorted);
-
 	bs.fillseq = write_db(db, sorted);
-	clear_db(db, sorted);
-
-	bs.fillrandom = write_db(db, kvs);
-	clear_db(db, sorted);
-
-	write_db(db, sorted);
 	bs.overwrite = write_db(db, sorted);
-	clear_db(db, sorted);
-
-	write_db(db, sorted);
 	bs.deleteseq = clear_db(db, sorted);
-
-	write_db(db, sorted);
+	bs.fillrandom = write_db(db, kvs);
+	bs.seekordered = seek_db(db, sorted);
+	bs.seekrandom = seek_db(db, kvs);
 	bs.deleterandom = clear_db(db, kvs);
 
-	write_db(db, sorted);
-	bs.seekrandom = seek_db(db, kvs);
-	clear_db(db, sorted);
-
-	write_db(db, sorted);
-	bs.seekordered = seek_db(db, sorted);
-	clear_db(db, sorted);
+//	write_db(db, sorted);
+//	clear_db(db, sorted);
+//
+//	bs.fillseq = write_db(db, sorted);
+//	clear_db(db, sorted);
+//
+//	bs.fillrandom = write_db(db, kvs);
+//	clear_db(db, sorted);
+//
+//	write_db(db, sorted);
+//	bs.overwrite = write_db(db, sorted);
+//	clear_db(db, sorted);
+//
+//	write_db(db, sorted);
+//	bs.deleteseq = clear_db(db, sorted);
+//
+//	write_db(db, sorted);
+//	bs.deleterandom = clear_db(db, kvs);
+//
+//	write_db(db, sorted);
+//	bs.seekrandom = seek_db(db, kvs);
+//	clear_db(db, sorted);
+//
+//	write_db(db, sorted);
+//	bs.seekordered = seek_db(db, sorted);
+//	clear_db(db, sorted);
 
 	return bs;
+}
+
+void print_stats(struct bench_stats bs)
+{
+
 }
