@@ -32,27 +32,30 @@ void test() {
     ProjectDb db;
 
     //    int num = 16000;
-    int num = 200;
-    for (auto i = 0; i < num; i++) {
-        db.set(to_string(i), to_string(i) + " Hello World!");
-    }
-    log::info("set done.");
-    this_thread::sleep_for(std::chrono::seconds(1));
-    for (auto i = 0; i < num; i++) {
-        if (i % 2 == 0) {
-            db.remove(to_string(i));
-        }
-    }
-    log::info("remove done.");
-    this_thread::sleep_for(std::chrono::seconds(1));
+    int base = 25;
+    int num = 25;
+    //    for (auto i = 0; i < num; i++) {
+    //        db.set(to_string(base + i), to_string(base + i) + " Hello
+    //        World!");
+    //    }
+    //    log::info("set done.");
+    //    this_thread::sleep_for(std::chrono::seconds(1));
+    //    for (auto i = 0; i < num; i++) {
+    //        if (i % 2 == 0) {
+    //            db.remove(to_string(base + i));
+    //        }
+    //    }
+    //    log::info("remove done.");
+    //    this_thread::sleep_for(std::chrono::seconds(1));
     int valCnt = 0;
-    for (auto i = num - 1; i >= 0; i--) {
+    for (auto i = base + num - 1; i >= 0; i--) {
         auto tmp = db.get(to_string(i));
         if (tmp.has_value()) {
+            log::info(tmp.value());
             valCnt++;
         }
     }
-    log::info("valCnt: ", valCnt);
+    //    log::info("valCnt: ", valCnt);
 }
 
 int main() {
