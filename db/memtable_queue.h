@@ -35,6 +35,8 @@ class MemTableQueue {
                                                      const string& value);
     [[nodiscard]] optional<future<SSTableIndex>> remove(const string& key);
 
+    optional<future<SSTableIndex>> pushFromTransactionLog(
+        const string& transactionLogFileName, bool isLastTransactionLog);
     /**
      * NOTE: @mli:
      * It is possible that we have multiple futures in queue (although this is
@@ -51,6 +53,9 @@ class MemTableQueue {
     deque<pair<MemTable, TransactionLogWritter>> m_queue;
 
     [[nodiscard]] optional<future<SSTableIndex>> tryLaunchFlushToDisk(
+        const MemTable& memTable);
+
+    [[nodiscard]] future<SSTableIndex> launchFlushToDisk(
         const MemTable& memTable);
 };
 

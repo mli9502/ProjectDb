@@ -8,6 +8,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <vector>
 
 #include "db_config.h"
 
@@ -25,15 +26,19 @@ string genTransactionLogFileName();
 string genFlushInProgressSSTableFileName(string_view baseFileName);
 string genMergedSSTableFileName(string_view baseFileName);
 
+void initDbPath();
+
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode);
 
 void markFileAsDeprecated(string_view baseFileName);
 
 string removeExtAndRename(string_view fileName);
 
-void removeDeprecatedFiles();
-
 void waitUntilFileExist(string_view fileName);
+
+int getCounterFromFileName(const string& fileName);
+vector<string> getFilesWithExtSorted(string_view ext);
+void removeFilesWithExt(string_view ext);
 
 // https://stackoverflow.com/questions/43514665/use-of-auto-funcint-before-deduction-of-auto-in-c14
 inline auto getFileSizeInBytes(string_view baseFileName) {

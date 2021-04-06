@@ -7,6 +7,7 @@
 #include "log.h"
 #include "memtable_queue.h"
 #include "sstable_index_queue.h"
+#include "sstable_ops.h"
 #include "system_utils.h"
 
 using namespace std;
@@ -15,6 +16,8 @@ namespace projectdb {
 
 class ProjectDbImpl {
    public:
+    ProjectDbImpl();
+    ~ProjectDbImpl();
     optional<string> get(const string& key);
     void set(const string& key, const string& value);
     void remove(const string& key);
@@ -33,6 +36,35 @@ class ProjectDbImpl {
     void checkFlushToDiskFutures();
     bool checkSSTableCompactionFuture();
 };
+
+ProjectDbImpl::ProjectDbImpl() { init(); }
+
+/**
+ * In dtor, wait for all flushToDisk and ssTableCompaction jobs to be done
+ * before finish.
+ */
+ProjectDbImpl::~ProjectDbImpl() {
+    log::info("Finishing up in-progress jobs before closing ProjectDb...");
+    // NOTE: @mli: checkFlushToDiskFutures is not called in here because we just
+    // want to finish all flushToDisk, and don't want to start any more
+    // compactions.
+    log::info("Waiting for flushToDisk jobs to finish...");
+    for (auto& ft : m_flushToDiskFutures) {
+        auto ssTableIndex = ft.get();
+        log::debug("Got SSTableIndex for SSTable: ",
+                   ssTableIndex.getSSTableFileName());
+        removeExtAndRename(ssTableIndex.getSSTableFileName());
+        // Remove the corresponding MemTable and TransactionLog.
+        m_memTableQueue.pop();
+    }
+    log::info("Waiting for SSTable compaction job to finish...");
+    while (checkSSTableCompactionFuture()) {
+    }
+    // Finially removing all deprecated files.
+    log::info("Removing deprecated files...");
+    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
+    log::info("Done.");
+}
 
 optional<string> ProjectDbImpl::get(const string& key) {
     checkFutures();
@@ -80,10 +112,69 @@ void ProjectDbImpl::remove(const string& key) {
 // we can know during initialization which SSTable should we pick up.
 /**
  * Performs the following operations to initialize the database:
- * 1. Remove all files with .deprecated and .merged suffix, since they are temp
- * files. 2.
+ * 1. Remove all files with .deprecated, .merged and .ip suffix, since they are
+ * temp files.
+ * 2. Load .sst files and generate SSTableIndex, update
+ * SSTABLE_FILE_COUNTER_BASE to <last .sst counter> + 1. Note that we need to
+ * load SSTables before MemTables, this is because SSTable represents the
+ * entries that are added to db earlier (old data). Also, when loading
+ * MemTables, it's possible that we need to flush some MemTables to disk, so we
+ * need SSTABLE_FILE_COUNTER_BASE to be properly set.
+ *
+ * 2. Load .txl files as MemTable, update TRANSACTION_LOG_FILE_COUNTER_BASE to
+ * <last .txl counter> + 1.
+ *
+ * 3. tryFlushToDisk for all loaded MemTables.
+ *
  */
-void ProjectDbImpl::init() {}
+void ProjectDbImpl::init() {
+    initDbPath();
+
+    log::info("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
+    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
+    log::info("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
+              " files...");
+    removeFilesWithExt(db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT);
+    log::info("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
+    removeFilesWithExt(db_config::MERGED_SSTABLE_FILE_EXT);
+
+    log::info("Reloading SSTables from disk...");
+    auto ssTableFiles = getFilesWithExtSorted(db_config::SSTABLE_FILE_EXT);
+    for_each(ssTableFiles.cbegin(), ssTableFiles.cend(),
+             [&](const auto& ssTableFileName) {
+                 log::debug("Processing SSTable file: ", ssTableFileName);
+                 SSTableIndex ssTableIndex;
+                 loadSSTable(ssTableFileName, &ssTableIndex);
+                 m_ssTableIndexQueue.insert(move(ssTableIndex));
+             });
+
+    if (!ssTableFiles.empty()) {
+        db_config::impl::SSTABLE_FILE_COUNTER_BASE =
+            1 + getCounterFromFileName(ssTableFiles.back());
+        log::debug("SSTABLE_FILE_COUNTER_BASE updated to: ",
+                   db_config::impl::SSTABLE_FILE_COUNTER_BASE);
+    }
+
+    log::info("Reloading Transaction Logs from disk...");
+    auto transactionLogFiles =
+        getFilesWithExtSorted(db_config::TRANSACTION_LOG_FILE_EXT);
+    for (auto cit = transactionLogFiles.cbegin();
+         cit != transactionLogFiles.end(); cit++) {
+        bool isLastTransactionLog = (next(cit) == transactionLogFiles.end());
+        auto&& ft =
+            m_memTableQueue.pushFromTransactionLog(*cit, isLastTransactionLog);
+        if (ft.has_value()) {
+            m_flushToDiskFutures.emplace_back(move(ft.value()));
+        }
+    }
+
+    if (!transactionLogFiles.empty()) {
+        db_config::impl::TRANSACTION_LOG_FILE_COUNTER_BASE =
+            1 + getCounterFromFileName(transactionLogFiles.back());
+        log::debug("TRANSACTION_LOG_FILE_COUNTER_BASE updated to: ",
+                   db_config::impl::TRANSACTION_LOG_FILE_COUNTER_BASE);
+    }
+}
 
 void ProjectDbImpl::checkFutures() {
     bool hasCompactionRunning = checkSSTableCompactionFuture();
