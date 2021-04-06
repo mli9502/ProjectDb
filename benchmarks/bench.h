@@ -44,5 +44,6 @@ void csv_db (const string fname, ProjectDb& db, int val_col, int size);
 
 // Benchmark test
 struct bench_stats run_bench(ProjectDb& db, int size, int len);
+void print_stats(struct bench_stats bs);
 
 #endif

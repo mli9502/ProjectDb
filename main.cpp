@@ -20,6 +20,9 @@
 using namespace std;
 using namespace projectdb;
 
+const int data_size = 10'000;
+const int word_len = 10;
+
 int main() {
 	db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 10;
     db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 8;
@@ -27,7 +30,6 @@ int main() {
     db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 20;
 
     ProjectDb db;
-	struct bench_stats bs = run_bench(db, 10, 10);
-	cout<<"fillseq: "<<bs.fillseq.count()<<"\n";
-	cout<<"fillrandom: "<<bs.fillrandom.count()<<"\n";
+//	struct bench_stats bs = run_bench(db, data_size, word_len);
+//	print_stats(bs);
 }

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <string>
 #include <sstream>
+#include <iomanip>
 
 #include "projectdb/projectdb.h"
 #include "bench.h"
@@ -222,7 +223,19 @@ struct bench_stats run_bench(ProjectDb& db, int size, int len)
 	return bs;
 }
 
+void print_chrono(string b, chrono::duration<double> d)
+{
+	cout<<left<<setw(22)<<b<<d.count()<<'\n';
+}
+
 void print_stats(struct bench_stats bs)
 {
-
+	cout<<"Benchmarks in seconds:\n";
+	print_chrono("fillseq", bs.fillseq);
+	print_chrono("fillrandom", bs.fillrandom);
+	print_chrono("overwrite", bs.overwrite);
+	print_chrono("deleteseq", bs.deleteseq);
+	print_chrono("deleterandom", bs.deleterandom);
+	print_chrono("seekrandom", bs.seekrandom);
+	print_chrono("seekordered", bs.seekordered);
 }
