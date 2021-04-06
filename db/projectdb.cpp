@@ -120,11 +120,9 @@ void ProjectDbImpl::remove(const string& key) {
  * entries that are added to db earlier (old data). Also, when loading
  * MemTables, it's possible that we need to flush some MemTables to disk, so we
  * need SSTABLE_FILE_COUNTER_BASE to be properly set.
- *
- * 2. Load .txl files as MemTable, update TRANSACTION_LOG_FILE_COUNTER_BASE to
- * <last .txl counter> + 1.
- *
- * 3. tryFlushToDisk for all loaded MemTables.
+ * 3. Load .txl files as MemTable, launch async job to flush MemTables to disk
+ * besides the last one if more than one MemTables are loaded from disk. Update
+ * TRANSACTION_LOG_FILE_COUNTER_BASE to <last .txl counter> + 1.
  *
  */
 void ProjectDbImpl::init() {
