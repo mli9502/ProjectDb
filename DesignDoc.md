@@ -74,14 +74,14 @@ A brief description of `LSM-Tree` algorithm can be found in this [wiki](https://
 
   A diagram explaining the variables (with `NUM_SSTABLE_TO_COMPACT == 10`) is as following:
 
-    <pre>
+    ```c++
       SSTable that already reaches SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES
       |  
     | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | ...  
           |   |------ NUM_SSTABLE_TO_COMPACT ------|
           |
           m_compactionStartIndex
-    </pre>
+    ```
 
   Everytime we push a new `SSTableIndex` into `m_ssTableIndexQueue`, which means that there's a new `SSTable` being written to disk, we will check if we already have more than `NUM_SSTABLE_TO_COMPACT` `SSTable`s between current `m_compactionStartIndex` and the end of the queue. If so, we launch the `compaction` job for `NUM_SSTABLE_TO_COMPACT` number of tables.  
 
