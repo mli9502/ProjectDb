@@ -45,7 +45,8 @@ kvp_vec read_csv(const string fname, int val_col, int size);
 void csv_db (const string fname, ProjectDb& db, int val_col, int size);
 
 // Benchmark test
-void run_bench(struct bench_stats& bs, int size, int len);
+kvp_vec gen_rand(int size, int len);
+void run_bench(struct bench_stats& bs, kvp_vec& kvs);
 void print_stats(struct bench_stats& bs);
 
 #endif

@@ -20,8 +20,6 @@ using namespace std;
 using namespace projectdb;
 namespace fs = std::filesystem;
 
-static int len = 100;
-
 using kvp_vec = vector<pair<string,string>>;
 
 /**
@@ -47,6 +45,7 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 	pair<string,string> kvp;
 
 	fin.open(fname, ios::in);
+	fin >> temp;
 
 	while (fin >> temp && size>0) {
 		getline(fin, line);
@@ -69,29 +68,29 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 /**
  * Directly reads csv data into db.
  */
-void csv_db (const string fname, ProjectDb& db, int val_col, int size)
-{
-	fstream fin;
-	string line, temp, word, key, value;
-
-	fin.open(fname, ios::in);
-
-	while (fin >> temp && size>0) {
-		getline(fin, line);
-		int col = 0;
-		stringstream s(line);
-
-		while (getline(s, word, ',') && col<=val_col) {
-			if (col == 0)
-				key = word;
-			if (col == val_col)
-				value = word;
-			++col;
-		}
-		db.set(key,word);
-		--size;
-	}
-}
+// void csv_db (const string fname, ProjectDb& db, int val_col, int size)
+// {
+// 	fstream fin;
+// 	string line, temp, word, key, value;
+// 
+// 	fin.open(fname, ios::in);
+// 
+// 	while (fin >> temp && size>0) {
+// 		getline(fin, line);
+// 		int col = 0;
+// 		stringstream s(line);
+// 
+// 		while (getline(s, word, ',') && col<=val_col) {
+// 			if (col == 0)
+// 				key = word;
+// 			if (col == val_col)
+// 				value = word;
+// 			++col;
+// 		}
+// 		db.set(key,word);
+// 		--size;
+// 	}
+// }
 
 /**
  * Pass in key value pairs by copy and sorts them
@@ -134,7 +133,7 @@ string random_str(Random &rnd, int len)
  * Generates size number of key value pairs of length len
  * and returns them in a vector.
  */
-kvp_vec gen_rand(int size)
+kvp_vec gen_rand(int size, int len)
 {
 	Random rnd(301);
 	kvp_vec kvs;
@@ -178,16 +177,14 @@ chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
  * Runs the benchmarks described in the header file.
  * The db is cleared after every benchmark to ensure consistency.
  */
-void run_bench(struct bench_stats& bs, int size, int len)
+void run_bench(struct bench_stats& bs, kvp_vec& kvs)
 {
-	kvp_vec kvs = gen_rand(size);
 	kvp_vec shuf = copy_shuf(kvs);
 
 	ProjectDb db0;
 	bs.fillseq = write_db(db0, kvs);
 	bs.overwrite = write_db(db0, kvs);
 	bs.deleteseq = clear_db(db0, kvs);
-	fs::remove_all("./projectdb");
 
 	ProjectDb db1;
 	bs.fillrandom = write_db(db1, shuf);

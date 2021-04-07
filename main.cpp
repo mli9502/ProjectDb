@@ -20,11 +20,18 @@
 using namespace std;
 using namespace projectdb;
 
+using kvp_vec = vector<pair<string,string>>;
+
 const int data_size = 1;
 const int word_len = 100;
 
 int main() {
 	struct bench_stats bs;
-	run_bench(bs, data_size, word_len);
+	kvp_vec kvs = gen_rand(data_size, word_len);
+	run_bench(bs, kvs);
 	print_stats(bs);
+
+	kvs = read_csv("../datasets/USvideos.csv",2,20);
+	for (auto kv : kvs)
+		cout<<kv.first<<", "<<kv.second<<"\n";
 }
