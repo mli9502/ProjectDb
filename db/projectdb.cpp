@@ -226,6 +226,10 @@ void ProjectDbImpl::checkFlushToDiskFutures() {
     // However, we can't call checkFlushToDiskFutures while compaction job
     // is running, since checkFlushToDiskFutures will update the queue.
     log::debug("Try starting SSTable compaction job.");
+    // TODO: @mli: We might be able to optimize this to take in a list of
+    // filenames, so it won't need to access m_ssTableIndexQueue directly. With
+    // this change, we could do checkFlushToDiskFutures while compaction is
+    // running.
     auto&& ft = m_ssTableIndexQueue.tryLaunchCompaction();
     if (ft.has_value()) {
         log::debug("Starting SSTable compaction job.");
