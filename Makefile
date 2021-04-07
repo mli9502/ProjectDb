@@ -17,7 +17,7 @@ main:
 
 run_main:
 	$(MAKE) -s main
-	# -@rm -rf $(CMAKE_DIR)/projectdb
+	-@rm -rf $(CMAKE_DIR)/projectdb
 	cd $(CMAKE_DIR) && ./main
 
 tests:
