@@ -20,16 +20,11 @@
 using namespace std;
 using namespace projectdb;
 
-const int data_size = 10'000;
-const int word_len = 10;
+const int data_size = 1;
+const int word_len = 100;
 
 int main() {
-	db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 10;
-    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 8;
-    db_config::NUM_SSTABLE_TO_COMPACT = 2;
-    db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 20;
-
-    ProjectDb db;
-//	struct bench_stats bs = run_bench(db, data_size, word_len);
-//	print_stats(bs);
+	struct bench_stats bs;
+	run_bench(bs, data_size, word_len);
+	print_stats(bs);
 }

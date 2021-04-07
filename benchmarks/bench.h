@@ -8,6 +8,8 @@
 #include "projectdb/projectdb.h"
 #include "random.h"
 
+#include <filesystem>
+
 using namespace std;
 using namespace projectdb;
 
@@ -28,13 +30,13 @@ using kvp_vec = vector<pair<string,string>>;
  * Contains duration statistics for all benchmarks.
  */
 struct bench_stats {
-	chrono::duration<double> fillseq;
-	chrono::duration<double> fillrandom;
-	chrono::duration<double> overwrite;
-	chrono::duration<double> deleteseq;
-	chrono::duration<double> deleterandom;
-	chrono::duration<double> seekrandom;
-	chrono::duration<double> seekordered;
+	chrono::microseconds fillseq;
+	chrono::microseconds fillrandom;
+	chrono::microseconds overwrite;
+	chrono::microseconds deleteseq;
+	chrono::microseconds deleterandom;
+	chrono::microseconds seekrandom;
+	chrono::microseconds seekordered;
 };
 
 // Useful functions for managing csv
@@ -43,7 +45,7 @@ kvp_vec read_csv(const string fname, int val_col, int size);
 void csv_db (const string fname, ProjectDb& db, int val_col, int size);
 
 // Benchmark test
-struct bench_stats run_bench(ProjectDb& db, int size, int len);
-void print_stats(struct bench_stats bs);
+void run_bench(struct bench_stats& bs, int size, int len);
+void print_stats(struct bench_stats& bs);
 
 #endif
