@@ -81,7 +81,7 @@ unique_ptr<SSTable> mergeSSTable(const SSTable& oldSSTable,
 
 SSTableIndex flushSSTable(const SSTable& ssTable, string_view fileName) {
     // First try remove deprecated files to keep directory clean.
-    removeDeprecatedFiles();
+    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
 
     SSTableIndex rtn;
     // Scope to make sure that ofs is destroyed.
@@ -132,6 +132,7 @@ SSTable loadSSTable(string_view ssTableFileName, SSTableIndex* ssTableIndex) {
         });
     if (ssTableIndex) {
         ssTableIndex->setEofPos(ifs.tellg());
+        ssTableIndex->setSSTableFileName(ssTableFileName);
     }
 
     //    log::debug("Successfully deserialzed SSTable: ", rtn);
@@ -142,7 +143,7 @@ vector<SSTableIndex> mergeSSTables(
     SSTableIndexQueue::value_type::iterator begin,
     SSTableIndexQueue::value_type::iterator end) {
     // First try remove deprecated files to keep directory clean.
-    removeDeprecatedFiles();
+    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
 
     auto debugTag = to_string(getTimeSinceEpoch().count()) + "; ";
 

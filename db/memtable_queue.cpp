@@ -65,6 +65,22 @@ optional<future<SSTableIndex>> MemTableQueue::remove(const string& key) {
     return tryLaunchFlushToDisk(m_queue.back().first);
 }
 
+optional<future<SSTableIndex>> MemTableQueue::pushFromTransactionLog(
+    const string& transactionLogFileName, bool isLastTransactionLog) {
+    m_queue.emplace_back(TransactionLogLoader::load(transactionLogFileName),
+                         TransactionLogWritter(transactionLogFileName));
+    if (!isLastTransactionLog) {
+        // NOTE: @mli: In here, we don't call tryLaunchFlushToDisk,
+        // because if flushToDisk is true, we are sure that we need the flush,
+        // so we don't need to check needsFlushToDisk.
+        // Also, since when it's not the last loaded MemTable, we are just
+        // cleaning up our previous runs, so we don't want to add a new MemTable
+        // entry at the end of the queue.
+        return launchFlushToDisk(m_queue.back().first);
+    }
+    return {};
+}
+
 void MemTableQueue::pop() {
     auto transactionLogFileName =
         m_queue.front().second.getTransactionLogFileName();
@@ -81,11 +97,13 @@ optional<future<SSTableIndex>> MemTableQueue::tryLaunchFlushToDisk(
     if (!memTable.needsFlushToDisk()) {
         return {};
     }
-    log::debug(
-        "MemTable needs to be flushed to disk. Adding a new MemTable to queue "
-        "and start async job to flush current MemTable to disk as SSTable, and "
-        "generate SSTableIndex.");
     m_queue.emplace_back();
+    return launchFlushToDisk(memTable);
+}
+
+future<SSTableIndex> MemTableQueue::launchFlushToDisk(
+    const MemTable& memTable) {
+    log::debug("Launch job to flush MemTable to disk.");
     auto currTable = memTable.getTable();
     unsigned currSSTableFileCounter =
         ++db_config::impl::SSTABLE_FILE_COUNTER_BASE;

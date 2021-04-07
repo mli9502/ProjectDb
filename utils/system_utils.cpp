@@ -4,6 +4,7 @@
 
 #include "system_utils.h"
 
+#include <regex>
 #include <thread>
 
 #include "log.h"
@@ -49,16 +50,18 @@ string genTransactionLogFileName() {
                        db_config::TRANSACTION_LOG_FILE_EXT);
 }
 
+void initDbPath() {
+    filesystem::path dbPath(db_config::DB_FILE_PATH);
+    try {
+        filesystem::create_directories(dbPath);
+    } catch (const exception& e) {
+        log::errorAndThrow("Failed to create path: ", dbPath,
+                           " with exception: ", e.what());
+    }
+}
+
 fstream getFileStream(string_view baseFileName, ios_base::openmode ioMode) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
-    if (((ioMode & ios::out) != 0) || ((ioMode & ios::app) != 0)) {
-        try {
-            filesystem::create_directories(filePath);
-        } catch (const exception& e) {
-            log::errorAndThrow("Failed to get file stream for file: ",
-                               baseFileName, " with exception: ", e.what());
-        }
-    }
     filePath /= baseFileName;
     log::debug("Opening file with path: ", filePath);
     return fstream(filePath, ios::binary | ioMode);
@@ -97,17 +100,6 @@ string removeExtAndRename(string_view fileName) {
     return rtn.filename().string();
 }
 
-void removeDeprecatedFiles() {
-    for_each(begin(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
-             end(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
-             [](auto& p) {
-                 if (p.path().extension() == db_config::DEPRECATED_FILE_EXT) {
-                     log::debug("Will remove deprecated file: ", p.path());
-                     filesystem::remove(p.path());
-                 }
-             });
-}
-
 void waitUntilFileExist(string_view fileName) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
     const auto& fullFilePath = filePath / fileName;
@@ -123,6 +115,42 @@ void waitUntilFileExist(string_view fileName) {
         }
         this_thread::sleep_for(chrono::milliseconds(100));
     }
+}
+
+int getCounterFromFileName(const string& fileName) {
+    regex r(db_config::DB_FILE_PREFIX + "_(\\d+).*");
+    smatch match;
+    if (!regex_search(fileName, match, r)) {
+        log::errorAndThrow("Failed to extract counter from fileName: ",
+                           fileName);
+    }
+    return stoi(match.str(1));
+}
+
+void removeFilesWithExt(string_view ext) {
+    for_each(begin(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             end(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             [&](auto& p) {
+                 if (p.path().extension() == ext) {
+                     log::debug("Will remove file: ", p.path());
+                     filesystem::remove(p.path());
+                 }
+             });
+}
+
+vector<string> getFilesWithExtSorted(string_view ext) {
+    vector<string> rtn;
+    for_each(begin(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             end(filesystem::directory_iterator(db_config::DB_FILE_PATH)),
+             [&](auto& p) {
+                 if (p.path().extension() == ext) {
+                     rtn.emplace_back(p.path().filename().string());
+                 }
+             });
+    sort(rtn.begin(), rtn.end(), [](const string& lhs, const string& rhs) {
+        return getCounterFromFileName(lhs) < getCounterFromFileName(rhs);
+    });
+    return rtn;
 }
 
 }  // namespace projectdb

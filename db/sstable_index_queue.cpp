@@ -90,6 +90,16 @@ SSTableIndexQueue::tryLaunchCompaction() {
         log::info("NUM_SSTABLE_TO_COMPACT <= 0, compaction is disabled.");
         return {};
     }
+    /**
+     * TODO: @mli:
+     * Latter, we could use to config to control compaction:
+     * 1. NUM_SSTABLE_TO_START_COMPACT: This represents the number of new
+     * SSTable we should wait before starting compaction.
+     * 2. NUM_SSTABLE_TO_COMPACT: This represents the number of SSTables that we
+     * try to run compaction on. With these two config, we can control when to
+     * start compaction, and how many tables we want to compact separately. This
+     * could solve the problem that compaction is lagging by a lot sometime.
+     */
     // NOTE: @mli: Using int here to make sure that we could get negative value
     // when the queue is empty for example.
     int newlyAddedSSTablesCnt = m_queue.size() - m_compactionStartIndex - 1;
