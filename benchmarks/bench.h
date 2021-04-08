@@ -30,13 +30,14 @@ using kvp_vec = vector<pair<string,string>>;
  * Contains duration statistics for all benchmarks.
  */
 struct bench_stats {
-	chrono::microseconds fillseq;
-	chrono::microseconds fillrandom;
-	chrono::microseconds overwrite;
-	chrono::microseconds deleteseq;
-	chrono::microseconds deleterandom;
-	chrono::microseconds seekrandom;
-	chrono::microseconds seekordered;
+	unsigned entries;
+	chrono::duration<double> fillseq;
+	chrono::duration<double> fillrandom;
+	chrono::duration<double> overwrite;
+	chrono::duration<double> deleteseq;
+	chrono::duration<double> deleterandom;
+	chrono::duration<double> readrandom;
+	chrono::duration<double> readordered;
 };
 
 // Useful functions for managing csv

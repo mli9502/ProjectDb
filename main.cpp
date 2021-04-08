@@ -28,7 +28,11 @@ const int word_len = 100;
 int main() {
 	struct bench_stats bs;
 	kvp_vec kvs = gen_rand(data_size, word_len);
+	
+	auto start = chrono::steady_clock::now();
 	run_bench(bs, kvs);
+	auto stop = chrono::steady_clock::now();
+	cout<<chrono::duration<double>(stop-start).count()<<"\n";
 	cout<<"Randomly generated:\n";
 	print_stats(bs);
 
