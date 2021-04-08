@@ -7,6 +7,10 @@ https://docs.google.com/document/d/1hUqSPuXYsKvIoN_2vQ-LpulPxyBMh52uJJ3slTLZsnc/
 - Install `clang-format-11`.
 - Run `./init.sh` to install pre-commit hook for formatting the code.
 
+# Running Docker
+Build the Docker using "docker build ."
+Execute programs in the Docker using "docker run --rm -it -v `pwd`:/home/prodb -w=/home/prodb [image id]"
+
 # References
 - pre-commit hook for clang-format: https://github.com/barisione/clang-format-hooks/
 - paper for tech used by nosql: https://www.cs.utexas.edu/~rossbach/cs378h/papers/nosql-survey.pdf

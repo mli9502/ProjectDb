@@ -3,6 +3,7 @@
 #include <sstream>
 #include <thread>
 
+#include "bench.h"
 #include "db_config.h"
 #include "key.h"
 #include "log.h"
@@ -18,159 +19,28 @@
 using namespace std;
 using namespace projectdb;
 
-void test() {
-    //    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024;
-    //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 16 * 1024;
-    //    db_config::NUM_SSTABLE_TO_COMPACT = 2;
-    //    db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 16 * 1024 * 1024;
+using kvp_vec = vector<pair<string, string>>;
 
-    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 10;
-    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 8;
-    db_config::NUM_SSTABLE_TO_COMPACT = 2;
-    db_config::SSTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 20;
-
-    ProjectDb db;
-
-    //    int num = 16000;
-    int base = 25;
-    int num = 25;
-    //    for (auto i = 0; i < num; i++) {
-    //        db.set(to_string(base + i), to_string(base + i) + " Hello
-    //        World!");
-    //    }
-    //    log::info("set done.");
-    //    this_thread::sleep_for(std::chrono::seconds(1));
-    //    for (auto i = 0; i < num; i++) {
-    //        if (i % 2 == 0) {
-    //            db.remove(to_string(base + i));
-    //        }
-    //    }
-    //    log::info("remove done.");
-    //    this_thread::sleep_for(std::chrono::seconds(1));
-    int valCnt = 0;
-    for (auto i = base + num - 1; i >= 0; i--) {
-        auto tmp = db.get(to_string(i));
-        if (tmp.has_value()) {
-            log::info(tmp.value());
-            valCnt++;
-        }
-    }
-    //    log::info("valCnt: ", valCnt);
-}
+const int data_size = 10'000;
+const int word_len = 100;
 
 int main() {
-    log::debug("Starting database...");
-    test();
-    //    stringstream ss;
-    //    try {
-    //        SerializationWrapper<int>(10).serialize(ss);
-    //        cout << "After deserialize: "
-    //             << SerializationWrapper<int>().deserialize(ss) << endl;
-    //        ss.clear();
-    //        SerializationWrapper<double>(10.5).serialize(ss);
-    //        cout << "After deserialize: "
-    //             << SerializationWrapper<double>().deserialize(ss) << endl;
-    //        //        Key k{"abc\ntest"};
-    //        //        k.serialize(ss);
-    //        //        cout << "After deserialize: " << Key().deserialize(ss)
-    //        <<
-    //        //        endl;
-    //    } catch (const DbException& e) {
-    //        cout << e.what() << endl;
-    //    }
-    //
-    //    cout << "In here...";
+    cout << "Starting..." << endl;
+    struct bench_stats bs;
+    kvp_vec kvs = gen_rand(data_size, word_len);
 
-    //    static_assert(serializable_base_trait<int>::value, "Does not support
-    //    int"); static_assert(serializable_trait<int>::value, "End for int");
-    //    static_assert(serializable_trait<Key>::value, "End for Key");
-    //    //    static_assert(serializable_trait<pair<int, int>>::value,
-    //    "Pair<int,
-    //    //    int>"); static_assert(serializable_trait<pair<pair<int, int>,
-    //    //    pair<Key, Value>>>::value, "Pair<int, int>");
-    //    static_assert(Serializable<typename map<Key, Value>::value_type>,
-    //                  "Pair<int, int>");
-    //    static_assert(
-    //        Serializable<pair<int, vector<pair<vector<pair<Key, Value>>,
-    //        Key>>>>, "Pair<int, vector<int>>");
+    auto start = chrono::steady_clock::now();
+    run_bench(bs, kvs);
+    auto stop = chrono::steady_clock::now();
+    cout << chrono::duration<double>(stop - start).count() << "\n";
+    cout << "Randomly generated:\n";
+    print_stats(bs);
 
-    //    db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES = 100;
-    //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 50;
-    //    MemTableQueue mq;
-    //    vector<future<SSTableIndex>> futures;
-    //    for (int i = 0; i < 6; i++) {
-    //        auto tmp =
-    //            mq.set(to_string(2 * i), "! Hello World " + to_string(2 * i));
-    //        if (tmp.has_value()) {
-    //            futures.emplace_back(move(tmp.value()));
-    //        }
-    //    }
-    //    int cnt = 0;
-    //    for (auto& ft : futures) {
-    //        while (ft.wait_for(chrono::seconds(0)) != future_status::ready) {
-    //        }
-    //        auto index = ft.get();
-    //        log::debug("Future ", cnt, " ready: ", index);
-    //        cnt += 1;
-    //        Key key("6");
-    //        auto tmp = index.seek(key);
-    //        if (!tmp.has_value()) {
-    //            log::debug(key, " not found!");
-    //        } else {
-    //            log::debug(tmp.value());
-    //        }
-    //        key = Key("8");
-    //        tmp = index.seek(key);
-    //        if (!tmp.has_value()) {
-    //            log::debug(key, " not found!");
-    //        } else {
-    //            log::debug(tmp.value());
-    //        }
-    //        key = Key("1");
-    //        tmp = index.seek(key);
-    //        if (!tmp.has_value()) {
-    //            log::debug(key, " not found!");
-    //        } else {
-    //            log::debug(tmp.value());
-    //        }
-    //        key = Key("2");
-    //        tmp = index.seek(key);
-    //        if (!tmp.has_value()) {
-    //            log::debug(key, " not found!");
-    //        } else {
-    //            log::debug(tmp.value());
-    //        }
-    //        //        auto tmpTable =
-    //        //        SerializationWrapper<Table::mapped_type>().deserialize()
-    //    }
-    //
-    //    auto txLog = genTransactionLogFileName();
-    //    auto writter = TransactionLogWritter(txLog);
-    //    writter.write(DbTransactionType::SET, Key("abc"), Value("bcd"));
-    //    writter.write(DbTransactionType::SET, Key("cde"), Value("def"));
-    //    writter.write(DbTransactionType::REMOVE, Key("abc"));
-    //    writter.write(DbTransactionType::SET, Key("efg"), Value("fgh"));
-    //
-    //    auto memTable = TransactionLogLoader::load(txLog);
-    //    log::debug(memTable);
-    //
-    //    //    db_config::SSTABLE_INDEX_BLOCK_SIZE_IN_BYTES = 0;
-    //    //    SSTable sst;
-    //    //    SSTableIndex ssti;
-    //    //    sst.loadFromDisk("project_db_0_22590.sst", &ssti);
-    //    //    log::debug(ssti);
-    //    return 0;
+    //	kvs = read_csv("../benchmarks/USvideos.csv",data_size);
+    //	if(data_size != kvs.size()) {
+    //	    cerr << "Error parsing file..." << endl;
+    //	    return -1;
+    //	}
+    //	run_bench(bs,kvs);
+    //	print_stats(bs);
 }
-
-/*
- * TODO: @mli:
- * Need to consider how should we handle the case the the library is called in
- * a:
- * 1. multi-process way: We probably need to distinguish file name between
- * different processes.
- * 2. multi-thread way: We probably need to provide an option for user to
- * initialize ProjectDb with "forceThreadSafe" as parameter. And we need to add
- * locking around get, set and remove ops to make sure it's thread safe. Maybe
- * create a ThreadSafeDecorator for the operations, which acquires a lock before
- * calling those ops?
- */

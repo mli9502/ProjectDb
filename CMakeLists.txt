@@ -27,6 +27,7 @@ target_include_directories(main PRIVATE config)
 target_include_directories(main PRIVATE db)
 target_include_directories(main PRIVATE include)
 target_include_directories(main PRIVATE utils)
+target_include_directories(main PRIVATE benchmarks)
 
 target_link_libraries(main PUBLIC projectdb pthread)
 
