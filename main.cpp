@@ -22,14 +22,19 @@ using namespace projectdb;
 
 using kvp_vec = vector<pair<string,string>>;
 
-const int data_size = 30000;
+const int data_size = 10'000;
 const int word_len = 100;
 
 int main() {
     cout << "Starting..." << endl;
 	struct bench_stats bs;
 	kvp_vec kvs = gen_rand(data_size, word_len);
+	
+	auto start = chrono::steady_clock::now();
 	run_bench(bs, kvs);
+	auto stop = chrono::steady_clock::now();
+	cout<<chrono::duration<double>(stop-start).count()<<"\n";
+	cout<<"Randomly generated:\n";
 	print_stats(bs);
 
 //	kvs = read_csv("../benchmarks/USvideos.csv",data_size);

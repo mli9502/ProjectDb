@@ -28,15 +28,11 @@ RUN cd googletest-release-1.10.0 && \
     cp lib/libg* /usr/local/lib
 RUN rm -rf ./googletest-release-1.10.0
 
-#WORKDIR /root
+COPY . ./project_db
 
-#CMD ["bash"]
+# Init build directory.
+RUN cd project_db && make init_build
 
-copy . ./project_db
-
-# init build directory.
-run cd project_db && make init_build
-
-# run test by default when launch the image.
-cmd cd project_db && make run_main
+# Run test by default when launch the image.
+CMD cd project_db && make run_tests
 
