@@ -128,15 +128,15 @@ void ProjectDbImpl::remove(const string& key) {
 void ProjectDbImpl::init() {
     initDbPath();
 
-    log::info("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
+    log::debug("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
     removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
-    log::info("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
-              " files...");
+    log::debug("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
+               " files...");
     removeFilesWithExt(db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT);
-    log::info("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
+    log::debug("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
     removeFilesWithExt(db_config::MERGED_SSTABLE_FILE_EXT);
 
-    log::info("Reloading SSTables from disk...");
+    log::debug("Reloading SSTables from disk...");
     auto ssTableFiles = getFilesWithExtSorted(db_config::SSTABLE_FILE_EXT);
     for_each(ssTableFiles.cbegin(), ssTableFiles.cend(),
              [&](const auto& ssTableFileName) {
@@ -153,7 +153,7 @@ void ProjectDbImpl::init() {
                    db_config::impl::SSTABLE_FILE_COUNTER_BASE);
     }
 
-    log::info("Reloading Transaction Logs from disk...");
+    log::debug("Reloading Transaction Logs from disk...");
     auto transactionLogFiles =
         getFilesWithExtSorted(db_config::TRANSACTION_LOG_FILE_EXT);
     for (auto cit = transactionLogFiles.cbegin();
