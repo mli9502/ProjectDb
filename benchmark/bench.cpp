@@ -24,41 +24,52 @@ namespace fs = std::filesystem;
 
 using kvp_vec = vector<pair<string, string>>;
 
-optional<pair<string, string>> split_line(const string& line) {
-    optional<pair<string, string>> rtn;
-
-    for (string::size_type i = 0; i < line.size(); i++) {
-        if (line[i] == ',' && i == 11) {
-            rtn = {line.substr(0, i), line.substr(i + 1)};
-            break;
-        }
-    }
-
-    return rtn;
+pair<string,string> split_csv(const string& line, int val_col)
+{
+	bool in_quote = 0;
+	pair<string,string> kv;
+	kv.first = kv.second = "";
+	int start, end;
+	int col = 0;
+	
+	start = end = 0;
+	while (col<=val_col) {
+		if (line[end]!=',' || in_quote){
+			++end;
+		} else if (line[end]=='"') {
+			in_quote^=1;
+		} else if (line[end]==',') {
+			if (col == 0)
+				kv.first = line.substr(start, end-start);
+			if (col == val_col)
+				kv.second = line.substr(start, end-start);
+			start = ++end;
+			++col;
+		}
+	}
+	return kv;
 }
 
 /**
- * Reads the first size number of rows from the given csv file
- * into a vector of key value pairs where the keys are taken from the
+ * Reads the first size number of rows from the given csv file 
+ * into a vector of key value pairs where the keys are taken from the 
  * first column and the values are taken from val_col.
  */
-kvp_vec read_csv(const string& fname, int size) {
-    fstream fin;
-    string line, word, temp;
-    kvp_vec kvs;
-    pair<string, string> kvp;
+kvp_vec read_csv(const string& fname, int val_col, int size)
+{
+	fstream fin;
+	string line, word, temp;
+	kvp_vec kvs;
+	pair<string,string> kvp;
 
-    fin.open(fname, ios::in);
-    getline(fin, line);
+	fin.open(fname, ios::in);
+	getline(fin, line);
 
-    while (getline(fin, line) && size > 0) {
-        auto tmp = split_line(line);
-        if (tmp.has_value()) {
-            kvs.push_back(tmp.value());
-        }
-        --size;
-    }
-    return kvs;
+	while (getline(fin, line) && size>0) {
+		kvs.push_back(split_csv(line, val_col));
+		--size;
+	}
+	return kvs;
 }
 
 /**
@@ -125,7 +136,7 @@ chrono::duration<double> write_db(ProjectDb& db, const kvp_vec& kvs) {
     return chrono::duration<double>(stop - start);
 }
 
-chrono::duration<double> seek_db(ProjectDb& db, const kvp_vec& kvs) {
+chrono::duration<double> read_db(ProjectDb& db, const kvp_vec& kvs) {
     auto start = chrono::steady_clock::now();
     for (auto pair : kvs) db.get(pair.first);
     auto stop = chrono::steady_clock::now();
@@ -142,12 +153,16 @@ void try_remove_db_dir() {
 
 /*
  * Runs the benchmarks described in the header file.
+ * Assumes the list of key value pairs is sorted.
  * The db is cleared after every benchmark to ensure consistency.
  */
 void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     try_remove_db_dir();
 
     kvp_vec shuf = copy_shuf(kvs);
+	bs.entries = kvs.size();
+
+    try_remove_db_dir();
 
     {
         ProjectDb db;
@@ -168,7 +183,7 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     {
         ProjectDb db;
         write_db(db, kvs);
-        bs.seekordered = seek_db(db, kvs);
+        bs.readordered = read_db(db, kvs);
     }
 
     try_remove_db_dir();
@@ -176,7 +191,7 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     {
         ProjectDb db;
         write_db(db, kvs);
-        bs.seekrandom = seek_db(db, shuf);
+        bs.readrandom = read_db(db, shuf);
     }
 
     try_remove_db_dir();
