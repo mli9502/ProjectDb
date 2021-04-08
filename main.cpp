@@ -22,7 +22,7 @@ using namespace projectdb;
 
 using kvp_vec = vector<pair<string,string>>;
 
-const int data_size = 1;
+const int data_size = 1'000;
 const int word_len = 100;
 
 int main() {
@@ -31,7 +31,8 @@ int main() {
 	run_bench(bs, kvs);
 	print_stats(bs);
 
-	kvs = read_csv("../datasets/USvideos.csv",2,20);
-	for (auto kv : kvs)
-		cout<<kv.first<<", "<<kv.second<<"\n";
+	kvs = read_csv("../datasets/USvideos.csv",2,data_size);
+	sort(kvs.begin(),kvs.end());
+	run_bench(bs,kvs);
+	print_stats(bs);
 }

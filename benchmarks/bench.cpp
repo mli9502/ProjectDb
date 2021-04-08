@@ -32,6 +32,31 @@ void print_db(ProjectDb& db, const kvp_vec& kvs)
 		cout<<pair.first<<", "<<pair.second<<'\n';
 }
 
+pair<string,string> split_csv(const string& line, int val_col)
+{
+	bool in_quote = 0;
+	pair<string,string> kv;
+	int start, end;
+	int col = 0;
+	
+	start = end = 0;
+	while (col<=val_col) {
+		if (line[end]!=',' || in_quote){
+			++end;
+		} else if (line[end]=='"') {
+			in_quote^=1;
+		} else if (line[end]==',') {
+			if (col == 0)
+				kv.first = line.substr(start, end-start);
+			if (col == val_col)
+				kv.second = line.substr(start, end-start);
+			start = ++end;
+			++col;
+		}
+	}
+	return kv;
+}
+
 /**
  * Reads the first size number of rows from the given csv file 
  * into a vector of key value pairs where the keys are taken from the 
@@ -45,21 +70,10 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 	pair<string,string> kvp;
 
 	fin.open(fname, ios::in);
-	fin >> temp;
+	getline(fin, line);
 
-	while (fin >> temp && size>0) {
-		getline(fin, line);
-		int col = 0;
-		stringstream s(line);
-
-		while (getline(s, word, ',') && col<=val_col) {
-			if (col == 0)
-				kvp.first = word;
-			if (col == val_col)
-				kvp.second = word;
-			++col;
-		}
-		kvs.push_back(kvp);
+	while (getline(fin, line) && size>0) {
+		kvs.push_back(split_csv(line, val_col));
 		--size;
 	}
 	return kvs;
@@ -180,6 +194,7 @@ chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
 void run_bench(struct bench_stats& bs, kvp_vec& kvs)
 {
 	kvp_vec shuf = copy_shuf(kvs);
+	fs::remove_all("./projectdb");
 
 	ProjectDb db0;
 	bs.fillseq = write_db(db0, kvs);
