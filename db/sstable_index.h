@@ -41,7 +41,8 @@ class SSTableIndex {
      * key: key_type
      * value: the start position of the entry with the key.
      * With the current implementation, the first and the last entry will ALWAYS
-     * be in the index.
+     * be in the index in order for us to decide if a key is in the table or not
+     * quickly, and whether the last block contains the key.
      */
     map<Table::key_type, ios::pos_type> m_index;
     ios::pos_type m_eofPos;
