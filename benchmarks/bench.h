@@ -40,9 +40,7 @@ struct bench_stats {
 };
 
 // Useful functions for managing csv
-void print_db(ProjectDb& db, const kvp_vec& kvs);
-kvp_vec read_csv(const string fname, int val_col, int size);
-void csv_db (const string fname, ProjectDb& db, int val_col, int size);
+kvp_vec read_csv(const string& fname, int size);
 
 // Benchmark test
 kvp_vec gen_rand(int size, int len);

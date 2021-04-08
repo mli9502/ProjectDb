@@ -11,6 +11,7 @@
 #include <random>
 #include <algorithm>
 #include <filesystem>
+#include <optional>
 
 #include "projectdb/projectdb.h"
 #include "bench.h"
@@ -22,39 +23,18 @@ namespace fs = std::filesystem;
 
 using kvp_vec = vector<pair<string,string>>;
 
-/**
- * Prints the keys and values in db
- * given a vector of key and value pairs.
- */
-void print_db(ProjectDb& db, const kvp_vec& kvs) 
+optional<pair<string,string>> split_line(const string& line)
 {
-	for (auto pair : kvs)
-		cout<<pair.first<<", "<<pair.second<<'\n';
-}
+    optional<pair<string, string>> rtn;
 
-pair<string,string> split_csv(const string& line, int val_col)
-{
-	bool in_quote = 0;
-	pair<string,string> kv;
-	int start, end;
-	int col = 0;
-	
-	start = end = 0;
-	while (col<=val_col) {
-		if (line[end]!=',' || in_quote){
-			++end;
-		} else if (line[end]=='"') {
-			in_quote^=1;
-		} else if (line[end]==',') {
-			if (col == 0)
-				kv.first = line.substr(start, end-start);
-			if (col == val_col)
-				kv.second = line.substr(start, end-start);
-			start = ++end;
-			++col;
-		}
-	}
-	return kv;
+    for(string::size_type i = 0; i < line.size(); i ++) {
+        if(line[i] == ',' && i == 11) {
+            rtn = {line.substr(0, i), line.substr(i + 1)};
+            break;
+        }
+    }
+
+    return rtn;
 }
 
 /**
@@ -62,7 +42,7 @@ pair<string,string> split_csv(const string& line, int val_col)
  * into a vector of key value pairs where the keys are taken from the 
  * first column and the values are taken from val_col.
  */
-kvp_vec read_csv(const string fname, int val_col, int size)
+kvp_vec read_csv(const string& fname, int size)
 {
 	fstream fin;
 	string line, word, temp;
@@ -73,38 +53,14 @@ kvp_vec read_csv(const string fname, int val_col, int size)
 	getline(fin, line);
 
 	while (getline(fin, line) && size>0) {
-		kvs.push_back(split_csv(line, val_col));
+	    auto tmp = split_line(line);
+	    if(tmp.has_value()) {
+	        kvs.push_back(tmp.value());
+	    }
 		--size;
 	}
 	return kvs;
 }
-
-/**
- * Directly reads csv data into db.
- */
-// void csv_db (const string fname, ProjectDb& db, int val_col, int size)
-// {
-// 	fstream fin;
-// 	string line, temp, word, key, value;
-// 
-// 	fin.open(fname, ios::in);
-// 
-// 	while (fin >> temp && size>0) {
-// 		getline(fin, line);
-// 		int col = 0;
-// 		stringstream s(line);
-// 
-// 		while (getline(s, word, ',') && col<=val_col) {
-// 			if (col == 0)
-// 				key = word;
-// 			if (col == val_col)
-// 				value = word;
-// 			++col;
-// 		}
-// 		db.set(key,word);
-// 		--size;
-// 	}
-// }
 
 /**
  * Pass in key value pairs by copy and sorts them
@@ -187,38 +143,63 @@ chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
 	return chrono::microseconds((stop-start).count()/kvs.size());
 }
 
+void try_remove_db_dir() {
+    fs::path dir("./projectdb");
+    if(!fs::exists(dir)) {
+        return;
+    }
+    fs::remove_all(dir);
+}
+
 /*
  * Runs the benchmarks described in the header file.
  * The db is cleared after every benchmark to ensure consistency.
  */
 void run_bench(struct bench_stats& bs, kvp_vec& kvs)
 {
+    try_remove_db_dir();
+
 	kvp_vec shuf = copy_shuf(kvs);
-	fs::remove_all("./projectdb");
 
-	ProjectDb db0;
-	bs.fillseq = write_db(db0, kvs);
-	bs.overwrite = write_db(db0, kvs);
-	bs.deleteseq = clear_db(db0, kvs);
+    {
+        ProjectDb db;
+        bs.fillseq = write_db(db, kvs);
+        bs.overwrite = write_db(db, kvs);
+        bs.deleteseq = clear_db(db, kvs);
+    }
 
-	ProjectDb db1;
-	bs.fillrandom = write_db(db1, shuf);
-	fs::remove_all("./projectdb");
+    try_remove_db_dir();
 
-	ProjectDb db2;
-	write_db(db2,kvs);
-	bs.seekordered = seek_db(db2, kvs);
-	fs::remove_all("./projectdb");
+    {
+        ProjectDb db;
+        bs.fillrandom = write_db(db, shuf);
+    }
 
-	ProjectDb db3;
-	write_db(db3,kvs);
-	bs.seekrandom = seek_db(db3, shuf);
-	fs::remove_all("./projectdb");
+    try_remove_db_dir();
 
-	ProjectDb db4;
-	write_db(db4,kvs);
-	bs.deleterandom = clear_db(db4, shuf);
-	fs::remove_all("./projectdb");
+    {
+        ProjectDb db;
+        write_db(db,kvs);
+        bs.seekordered = seek_db(db, kvs);
+    }
+
+    try_remove_db_dir();
+
+    {
+        ProjectDb db;
+        write_db(db,kvs);
+        bs.seekrandom = seek_db(db, shuf);
+    }
+
+    try_remove_db_dir();
+
+    {
+        ProjectDb db;
+        write_db(db,kvs);
+        bs.deleterandom = clear_db(db, shuf);
+    }
+
+    try_remove_db_dir();
 }
 
 void print_chrono(const string b, chrono::microseconds us)

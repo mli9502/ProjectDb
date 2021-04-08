@@ -22,17 +22,21 @@ using namespace projectdb;
 
 using kvp_vec = vector<pair<string,string>>;
 
-const int data_size = 1'000;
+const int data_size = 30000;
 const int word_len = 100;
 
 int main() {
+    cout << "Starting..." << endl;
 	struct bench_stats bs;
 	kvp_vec kvs = gen_rand(data_size, word_len);
 	run_bench(bs, kvs);
 	print_stats(bs);
 
-	kvs = read_csv("../datasets/USvideos.csv",2,data_size);
-	sort(kvs.begin(),kvs.end());
-	run_bench(bs,kvs);
-	print_stats(bs);
+//	kvs = read_csv("../benchmarks/USvideos.csv",data_size);
+//	if(data_size != kvs.size()) {
+//	    cerr << "Error parsing file..." << endl;
+//	    return -1;
+//	}
+//	run_bench(bs,kvs);
+//	print_stats(bs);
 }
