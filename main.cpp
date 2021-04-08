@@ -31,8 +31,8 @@ int main() {
 	run_bench(bs, kvs);
 	print_stats(bs);
 
-	kvs = read_csv("../datasets/USvideos.csv",2,data_size);
-	sort(kvs.begin(),kvs.end());
-	run_bench(bs,kvs);
-	print_stats(bs);
+//	kvs = read_csv("../datasets/USvideos.csv",2,data_size);
+//	sort(kvs.begin(),kvs.end());
+//	run_bench(bs,kvs);
+//	print_stats(bs);
 }

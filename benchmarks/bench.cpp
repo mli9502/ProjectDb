@@ -194,7 +194,6 @@ chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
 void run_bench(struct bench_stats& bs, kvp_vec& kvs)
 {
 	kvp_vec shuf = copy_shuf(kvs);
-	fs::remove_all("./projectdb");
 
 	ProjectDb db0;
 	bs.fillseq = write_db(db0, kvs);
