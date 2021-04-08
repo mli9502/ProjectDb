@@ -116,31 +116,31 @@ kvp_vec gen_rand(int size, int len)
 	return kvs;
 }
 
-chrono::microseconds clear_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> clear_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
 		db.remove(pair.first);
 	auto stop = chrono::steady_clock::now();
-	return chrono::microseconds((stop-start).count()/kvs.size());
+	return chrono::duration<double>(stop-start);
 }
 
-chrono::microseconds write_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> write_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
 		db.set(pair.first, pair.second);
 	auto stop = chrono::steady_clock::now();
-	return chrono::microseconds((stop-start).count()/kvs.size());
+	return chrono::duration<double>(stop-start);
 }
 
-chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
+chrono::duration<double> seek_db (ProjectDb& db, const kvp_vec& kvs)
 {
 	auto start = chrono::steady_clock::now();
 	for (auto pair : kvs)
 		db.get(pair.first);
 	auto stop = chrono::steady_clock::now();
-	return chrono::microseconds((stop-start).count()/kvs.size());
+	return chrono::duration<double>(stop-start);
 }
 
 void try_remove_db_dir() {
@@ -202,19 +202,19 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs)
     try_remove_db_dir();
 }
 
-void print_chrono(const string b, chrono::microseconds us)
+void print_chrono(const string b, const unsigned e, chrono::duration<double> us)
 {
-	cout<<left<<setw(22)<<b<<us.count()<<'\n';
+	cout<<left<<setw(22)<<b<<us.count()/e*1'000'000<<'\n';
 }
 
 void print_stats(struct bench_stats& bs)
 {
 	cout<<"Benchmarks in microseconds per operation:\n";
-	print_chrono("fillseq", bs.fillseq);
-	print_chrono("fillrandom", bs.fillrandom);
-	print_chrono("overwrite", bs.overwrite);
-	print_chrono("deleteseq", bs.deleteseq);
-	print_chrono("deleterandom", bs.deleterandom);
-	print_chrono("seekrandom", bs.seekrandom);
-	print_chrono("seekordered", bs.seekordered);
+	print_chrono("fillseq", bs.entries, bs.fillseq);
+	print_chrono("fillrandom", bs.entries, bs.fillrandom);
+	print_chrono("overwrite", bs.entries, bs.overwrite);
+	print_chrono("deleteseq", bs.entries, bs.deleteseq);
+	print_chrono("deleterandom", bs.entries, bs.deleterandom);
+	print_chrono("readrandom", bs.entries, bs.readrandom);
+	print_chrono("readordered", bs.entries, bs.readordered);
 }
