@@ -7,3 +7,4 @@ cmake-*/
 *.diff
 html/
 debug.log
+benchmarks/*.csv
