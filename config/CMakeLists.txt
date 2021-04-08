@@ -6,4 +6,4 @@ set(CMAKE_CXX_STANDARD 20)
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-add_library(config OBJECT db_config.cpp)
+add_library(config OBJECT db_config.cpp read_config.cpp)
