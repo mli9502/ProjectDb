@@ -194,30 +194,30 @@ chrono::microseconds seek_db (ProjectDb& db, const kvp_vec& kvs)
 void run_bench(struct bench_stats& bs, kvp_vec& kvs)
 {
 	kvp_vec shuf = copy_shuf(kvs);
-
+	fs::remove_all("./projectdb");
 	ProjectDb db0;
 	bs.fillseq = write_db(db0, kvs);
 	bs.overwrite = write_db(db0, kvs);
 	bs.deleteseq = clear_db(db0, kvs);
 
+	fs::remove_all("./projectdb");
 	ProjectDb db1;
 	bs.fillrandom = write_db(db1, shuf);
+	
 	fs::remove_all("./projectdb");
-
 	ProjectDb db2;
 	write_db(db2,kvs);
 	bs.seekordered = seek_db(db2, kvs);
-	fs::remove_all("./projectdb");
 
+	fs::remove_all("./projectdb");
 	ProjectDb db3;
 	write_db(db3,kvs);
 	bs.seekrandom = seek_db(db3, shuf);
-	fs::remove_all("./projectdb");
 
+	fs::remove_all("./projectdb");
 	ProjectDb db4;
 	write_db(db4,kvs);
 	bs.deleterandom = clear_db(db4, shuf);
-	fs::remove_all("./projectdb");
 }
 
 void print_chrono(const string b, chrono::microseconds us)
