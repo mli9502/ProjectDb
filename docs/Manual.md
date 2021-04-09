@@ -1,4 +1,4 @@
-# Document
+# Manual
 
 This documentation provides a detailed description of directories, files, classes and methods for implementing `ProjectDb`.
 
