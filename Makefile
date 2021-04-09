@@ -35,8 +35,8 @@ run_tests:
 	cd $(CMAKE_DIR)/tests && ./tests
 
 build_and_run_docker:
-	docker build -t cpp_project .
-	docker run cpp_project
+	docker build -t projectdb .
+	docker run projectdb
 
 pdf_regen_all:
 	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o ml4643_MengwenLi_$${file%.*}.pdf; done
