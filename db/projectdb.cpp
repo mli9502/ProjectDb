@@ -44,11 +44,11 @@ ProjectDbImpl::ProjectDbImpl() { init(); }
  * before finish.
  */
 ProjectDbImpl::~ProjectDbImpl() {
-    log::info("Finishing up in-progress jobs before closing ProjectDb...");
+    log::debug("Finishing up in-progress jobs before closing ProjectDb...");
     // NOTE: @mli: checkFlushToDiskFutures is not called in here because we just
     // want to finish all flushToDisk, and don't want to start any more
     // compactions.
-    log::info("Waiting for flushToDisk jobs to finish...");
+    log::debug("Waiting for flushToDisk jobs to finish...");
     for (auto& ft : m_flushToDiskFutures) {
         auto ssTableIndex = ft.get();
         log::debug("Got SSTableIndex for SSTable: ",
@@ -57,13 +57,13 @@ ProjectDbImpl::~ProjectDbImpl() {
         // Remove the corresponding MemTable and TransactionLog.
         m_memTableQueue.pop();
     }
-    log::info("Waiting for SSTable compaction job to finish...");
+    log::debug("Waiting for SSTable compaction job to finish...");
     while (checkSSTableCompactionFuture()) {
     }
     // Finially removing all deprecated files.
-    log::info("Removing deprecated files...");
+    log::debug("Removing deprecated files...");
     removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
-    log::info("Done.");
+    log::debug("Done.");
 }
 
 optional<string> ProjectDbImpl::get(const string& key) {
