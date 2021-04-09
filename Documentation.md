@@ -1,4 +1,4 @@
-# ProjectDb
+# ProjectDb Documentation
 
 This documentation provides a detailed description of directories, files, classes and methods for implementing `ProjectDb`.
 
@@ -34,7 +34,9 @@ This documentation provides a detailed description of directories, files, classe
 
     The performance of the database will be affected by some of the parameters.
 
-  - `db_config_parser.h/cpp`: __TODO: @mli: Add to this__  
+  - `db_config_parser.h/cpp`: 
+
+    This file contains `ConfigParser` class that parses a config file that user provides into the parameters used by the database.
 
 - `db`:
 
@@ -95,7 +97,15 @@ This documentation provides a detailed description of directories, files, classe
   - `value.h/cpp`:
 
     This file contains a wrapper class around `std::string` to represent the `value` type for the database.
-    
+
+- `include/projectdb`
+  
+  - `projectdb.h`: 
+
+    This file contains `ProjectDb` class, which user will use to access the provided apis.
+
+    This is the only file that user needs to include when using `ProjectDb`. For more details, see [Tutorial]().
+
 - `utils`
 
   - `db_concepts.h/cpp`:
@@ -155,10 +165,16 @@ This documentation provides a detailed description of directories, files, classe
 
     - `Container`: We first serialize `Container.size()`, so that we know how many entries to read. Then, we serialize each entry of the container.
 
+- `tests`:
+  
+  This directory contains unit tests that are implemented using google-test framework.
+
+- `Dockerfile`:
+
+  This file is used to run CI on all the PRs that we submitted, as well as uniform the development environment across the team.
+
 - `.clang-format`, `apply-format`, `git-pre-commit-format`, `init.sh`:
 
   These are files that are used for install git pre-commit hook to automatically run `clang-format` when commit. 
 
   `apply-format` and `git-pre-commit-format` are taken from https://github.com/barisione/clang-format-hooks/
-
-- 
