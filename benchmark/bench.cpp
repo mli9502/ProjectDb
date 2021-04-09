@@ -26,28 +26,26 @@ using kvp_vec = vector<pair<string, string>>;
 
 pair<string,string> split_csv(const string& line, int val_col)
 {
-	bool in_quote = 0;
-	pair<string,string> kv;
-	kv.first = kv.second = "";
-	int start, end;
-	int col = 0;
-	
-	start = end = 0;
-	while (col<=val_col) {
-		if (line[end]!=',' || in_quote){
-			++end;
-		} else if (line[end]=='"') {
-			in_quote^=1;
-		} else if (line[end]==',') {
-			if (col == 0)
-				kv.first = line.substr(start, end-start);
-			if (col == val_col)
-				kv.second = line.substr(start, end-start);
-			start = ++end;
-			++col;
-		}
-	}
-	return kv;
+    bool in_quote = 0;
+    pair<string, string> kv;
+    kv.first = kv.second = "";
+    int start, end;
+    int col = 0;
+
+    start = end = 0;
+    while (col <= val_col) {
+        if (line[end] != ',' || in_quote) {
+            ++end;
+        } else if (line[end] == '"') {
+            in_quote ^= 1;
+        } else if (line[end] == ',') {
+            if (col == 0) kv.first = line.substr(start, end - start);
+            if (col == val_col) kv.second = line.substr(start, end - start);
+            start = ++end;
+            ++col;
+        }
+    }
+    return kv;
 }
 
 /**
@@ -57,19 +55,19 @@ pair<string,string> split_csv(const string& line, int val_col)
  */
 kvp_vec read_csv(const string& fname, int val_col, int size)
 {
-	fstream fin;
-	string line, word, temp;
-	kvp_vec kvs;
-	pair<string,string> kvp;
+    fstream fin;
+    string line, word, temp;
+    kvp_vec kvs;
+    pair<string, string> kvp;
 
-	fin.open(fname, ios::in);
-	getline(fin, line);
+    fin.open(fname, ios::in);
+    getline(fin, line);
 
-	while (getline(fin, line) && size>0) {
-		kvs.push_back(split_csv(line, val_col));
-		--size;
-	}
-	return kvs;
+    while (getline(fin, line) && size > 0) {
+        kvs.push_back(split_csv(line, val_col));
+        --size;
+    }
+    return kvs;
 }
 
 /**
@@ -160,7 +158,7 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     try_remove_db_dir();
 
     kvp_vec shuf = copy_shuf(kvs);
-	bs.entries = kvs.size();
+    bs.entries = kvs.size();
 
     try_remove_db_dir();
 
@@ -169,15 +167,15 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
         bs.fillseq = write_db(db, kvs);
     }
 
-	{
-		ProjectDb db;
-		bs.overwrite = write_db(db, kvs);
-	}
+    {
+        ProjectDb db;
+        bs.overwrite = write_db(db, kvs);
+    }
 
-	{
-		ProjectDb db;
-		bs.deleteseq = clear_db(db, kvs);
-	}
+    {
+        ProjectDb db;
+        bs.deleteseq = clear_db(db, kvs);
+    }
 
     try_remove_db_dir();
 
@@ -193,10 +191,10 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
         write_db(db, kvs);
     }
 
-	{
+    {
         ProjectDb db;
         bs.readordered = read_db(db, kvs);
-	}
+    }
 
     try_remove_db_dir();
 
