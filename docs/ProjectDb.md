@@ -40,7 +40,7 @@ The documentations are included in the [ProjectDb](https://github.com/mli9502/Pr
 
   https://github.com/mli9502/ProjectDb/blob/main/docs/Document.pdf
 
-- Presentation: __`docs/Presentation.pptx`__
+- Presentation: __`docs/Presentation.pdf`__
 
-  https://github.com/mli9502/ProjectDb/blob/main/docs/Presentation.pptx
+  https://github.com/mli9502/ProjectDb/blob/main/docs/Presentation.pdf
 
