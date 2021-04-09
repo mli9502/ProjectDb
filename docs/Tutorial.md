@@ -3,6 +3,7 @@
 ## Requirements
 
 - `cmake version >= 3.16.*`
+
 - `gcc version >= 10.2.0` (This is needed for proper c++20 support)
 
 ## Usage
@@ -35,7 +36,9 @@ ProjectDb -> This is cloned ProjectDb repo
     cmake-build-release
         libprojectdb.a -> This is generated after running "make init_build && make projectdb"
 ```
+
 `main.cpp`, which is the application, is as following:
+
 ```c++
 // main.cpp
 
@@ -47,9 +50,12 @@ int main() {
     return 0;
 }
 ```
+
 The command used to build `main.cpp` is as following:
+
 ```bash
-[$] g++ -std=gnu++20 -I../ProjectDb/include main.cpp -o main -L../ProjectDb/cmake-build-release/ -lprojectdb -lpthread
+g++ -std=gnu++20 -I../ProjectDb/include main.cpp -o main \
+    -L../ProjectDb/cmake-build-release/ -lprojectdb -lpthread
 ```
 
 ## Usage 
