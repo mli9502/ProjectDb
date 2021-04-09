@@ -167,9 +167,17 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     {
         ProjectDb db;
         bs.fillseq = write_db(db, kvs);
-        bs.overwrite = write_db(db, kvs);
-        bs.deleteseq = clear_db(db, kvs);
     }
+
+	{
+		ProjectDb db;
+		bs.overwrite = write_db(db, kvs);
+	}
+
+	{
+		ProjectDb db;
+		bs.deleteseq = clear_db(db, kvs);
+	}
 
     try_remove_db_dir();
 
@@ -183,14 +191,22 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     {
         ProjectDb db;
         write_db(db, kvs);
-        bs.readordered = read_db(db, kvs);
     }
+
+	{
+        ProjectDb db;
+        bs.readordered = read_db(db, kvs);
+	}
 
     try_remove_db_dir();
 
     {
         ProjectDb db;
         write_db(db, kvs);
+    }
+
+    {
+        ProjectDb db;
         bs.readrandom = read_db(db, shuf);
     }
 
@@ -199,9 +215,12 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
     {
         ProjectDb db;
         write_db(db, kvs);
-        bs.deleterandom = clear_db(db, shuf);
     }
 
+    {
+        ProjectDb db;
+        bs.deleterandom = clear_db(db, shuf);
+    }
     try_remove_db_dir();
 }
 

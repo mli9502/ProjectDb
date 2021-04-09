@@ -16,7 +16,7 @@ using kvp_vec = vector<pair<string, string>>;
 const int word_len = 100;
 
 int main() {
-	for (int data_size = 24'000; data_size<50'001; data_size*=2) {
+	for (int data_size = 24'000; data_size<24'001; data_size*=2) {
 		cout << "Starting..." << endl;
 		struct bench_stats bs;
 		kvp_vec kvs = gen_rand(data_size, word_len);
