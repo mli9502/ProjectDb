@@ -1,4 +1,4 @@
-BUILD := debug
+BUILD := release
 CMAKE_DIR := cmake-build-${BUILD}
 
 # For release build, use command "make BUILD=release <target>".
