@@ -48,9 +48,10 @@ pair<string, string> split_csv(const string& line, int val_col) {
 }
 
 /**
- * Reads the first size number of rows from the given csv file 
- * into a vector of key value pairs where the keys are taken from the 
- * first column and the values are taken from val_col.
+ * Reads the first size number of rows from the
+ * given csv file into a vector of key value pairs
+ * where the keys are taken from the first column
+ * and the values are taken from val_col.
  */
 kvp_vec read_csv(const string& fname, int val_col, int size) {
     fstream fin;
