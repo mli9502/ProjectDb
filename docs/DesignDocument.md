@@ -1,4 +1,4 @@
-# ProjectDb
+# Design Document
 
 ## Introduction
 
@@ -44,13 +44,15 @@ A brief description of `LSM-Tree` algorithm can be found in this [wiki](https://
 
 - APIs that `ProjectDb` supports:
   
-  The current version of `ProjectDb` provides 3 apis: `set(key, value)`, `get(key)` and `remove(key)`. We think that these are the apis, along with the combination of these apis, can satisfy most of the use cases of for a database. 
+  The current version of `ProjectDb` provides 3 apis: `set(key, value)`, `get(key)` and `remove(key)`. 
+  
+  We think that these are the apis, along with the combination of these apis, can satisfy most of the use cases of for a database. 
 
   With further developments, more apis could potentially be provided, e.g. a `get` with a range provided by user.
 
 - __Format of data on disk__:
   
-  Everything is encoded into a list of `char` before flushing to disk. A more detailed description of the serialization format can be found in [documentation](__TODO: @mli: Add link to documentation.__)
+  Everything is encoded into a list of `char` before flushing to disk. A more detailed description of the serialization format can be found in [Documentation](__TODO: @mli: Add link to documentation.__)
 
   Because we don't expect a file written by `ProjectDb` on one machine to be opened on another machine, we don't have to worry about things like different machines having different size for `int`, endian differences between machines, etc.
 
@@ -98,6 +100,7 @@ A brief description of `LSM-Tree` algorithm can be found in this [wiki](https://
   There are two operations that are expensive due to writing to filesystem: 
     
   1. Flush `MemTable` (in memory) to `SSTable` (on disk) (`flush` for short).
+  
   2. Merge `SSTable`s to reduce the number of files, as well as the total size of the files (Due to removal of duplicate and `TOMBSTONE` entries) (`compaction` for short).
 
   Since these two operations could be very expensive, we can't let users wait for these when they call the apis that we provided. 

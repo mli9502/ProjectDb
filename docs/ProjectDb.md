@@ -10,6 +10,8 @@
 
 The documentations are included in the [ProjectDb](https://github.com/mli9502/ProjectDb) github repo, specifically:
 
+- Project Proposal: [docs/ProjectProposal.pdf]()
+
 - Implementation: [ProjectDb](https://github.com/mli9502/ProjectDb)
 
 - Measurements:
