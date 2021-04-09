@@ -219,6 +219,7 @@ void run_bench(struct bench_stats& bs, kvp_vec& kvs) {
         ProjectDb db;
         bs.deleterandom = clear_db(db, shuf);
     }
+
     try_remove_db_dir();
 }
 
