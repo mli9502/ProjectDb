@@ -24,8 +24,7 @@ namespace fs = std::filesystem;
 
 using kvp_vec = vector<pair<string, string>>;
 
-pair<string,string> split_csv(const string& line, int val_col)
-{
+pair<string, string> split_csv(const string& line, int val_col) {
     bool in_quote = 0;
     pair<string, string> kv;
     kv.first = kv.second = "";
@@ -53,8 +52,7 @@ pair<string,string> split_csv(const string& line, int val_col)
  * into a vector of key value pairs where the keys are taken from the 
  * first column and the values are taken from val_col.
  */
-kvp_vec read_csv(const string& fname, int val_col, int size)
-{
+kvp_vec read_csv(const string& fname, int val_col, int size) {
     fstream fin;
     string line, word, temp;
     kvp_vec kvs;
