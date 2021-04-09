@@ -24,7 +24,7 @@ This documentation provides a detailed description of directories, files, classe
   
 - `benchmark/*`: 
 
-  See [benchmark.md](__TODO: @mli: Add to this__) for detailed description of benchmarks.
+  See [Measurements.pdf](__TODO: @mli: Add to this__) for detailed description of benchmarks.
 
 - `config`:
   

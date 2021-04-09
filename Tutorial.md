@@ -3,6 +3,7 @@
 ## Requirements
 
 - `cmake version >= 3.16.*`
+
 - `gcc version >= 10.2.0` (This is needed for proper c++20 support)
 
 ## Usage
