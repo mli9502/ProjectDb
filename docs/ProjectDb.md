@@ -10,20 +10,37 @@
 
 The documentations are included in the [ProjectDb](https://github.com/mli9502/ProjectDb) github repo, specifically:
 
-- Project Proposal: [docs/ProjectProposal.pdf]()
+- Project Proposal: __`docs/ProjectProposal.pdf`__ 
+  
+  https://github.com/mli9502/ProjectDb/blob/main/docs/ProjectProposal.pdf
 
-- Implementation: [ProjectDb](https://github.com/mli9502/ProjectDb)
+- Implementation: __`ProjectDb`__ 
+  
+  https://github.com/mli9502/ProjectDb
 
 - Measurements:
   
-  - [code](https://github.com/mli9502/ProjectDb/tree/main/benchmark)
+  - __`code`__ 
   
-  - Results: [docs/Measurements.pdf]()
+    https://github.com/mli9502/ProjectDb/tree/main/benchmark
+  
+  - Results: __`docs/Measurements.pdf`__ 
+  
+    https://github.com/mli9502/ProjectDb/blob/main/docs/Measurements.pdf
 
-- Tutorial: [docs/Tutorial.pdf]()
+- Tutorial: __`docs/Tutorial.pdf`__ 
 
-- Design Document: [docs/DesignDocument.pdf]()
+  https://github.com/mli9502/ProjectDb/blob/main/docs/Tutorial.pdf
 
-- Manual (Documentation): [docs/Document.pdf]()
+- Design Document: __`docs/DesignDocument.pdf`__ 
 
-- Presentation: [docs/Presentation.pptx]()
+  https://github.com/mli9502/ProjectDb/blob/main/docs/DesignDocument.pdf
+
+- Manual (Documentation): __`docs/Document.pdf`__ 
+
+  https://github.com/mli9502/ProjectDb/blob/main/docs/Document.pdf
+
+- Presentation: __`docs/Presentation.pptx`__
+
+  https://github.com/mli9502/ProjectDb/blob/main/docs/Presentation.pptx
+
