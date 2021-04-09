@@ -3,7 +3,7 @@ CMAKE_DIR := cmake-build-${BUILD}
 
 # For release build, use command "make BUILD=release <target>".
 
-.PHONY: init_build main run_main tests run_tests build_and_run_docker pdf_regen_all zip_files clean
+.PHONY: init_build main run_main benchmark run_benchmark tests run_tests build_and_run_docker pdf_regen_all zip_files clean
 
 init_build:
 	-@rm -rf $(CMAKE_DIR)
@@ -19,6 +19,13 @@ run_main:
 	$(MAKE) -s main
 	-@rm -rf $(CMAKE_DIR)/projectdb
 	cd $(CMAKE_DIR) && ./main
+
+benchmark:
+	cd $(CMAKE_DIR) && cmake --build . --target benchmark
+
+run_benchmark:
+	$(MAKE) -s benchmark
+	cd $(CMAKE_DIR)/benchmark && ./benchmark
 
 tests:
 	cd $(CMAKE_DIR) && cmake --build . --target tests
