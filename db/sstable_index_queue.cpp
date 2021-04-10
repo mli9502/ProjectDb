@@ -56,6 +56,7 @@ void SSTableIndexQueue::update(
     m_queue.erase(m_queue.begin() + m_compactionStartIndex,
                   m_queue.begin() + m_compactionStartIndex + 1 +
                       db_config::NUM_SSTABLE_TO_COMPACT);
+
     // TODO: @mli: Need to look more into this latter. If we crash here, we
     // can't recover everything just by loading .sst files. We might also need
     // to load all the .deprecated files to be sure. Also, during init, we need
@@ -100,7 +101,8 @@ SSTableIndexQueue::tryLaunchCompaction() {
      * start compaction, and how many tables we want to compact separately. This
      * could solve the problem that compaction is lagging by a lot sometime.
      */
-    // NOTE: @mli: Using int here to make sure that we could get negative value
+    // NOTE: @mli:
+    // Using int here to make sure that we could get negative value
     // when the queue is empty for example.
     int newlyAddedSSTablesCnt = m_queue.size() - m_compactionStartIndex - 1;
     log::debug("Newly added SSTable count is: ", newlyAddedSSTablesCnt);

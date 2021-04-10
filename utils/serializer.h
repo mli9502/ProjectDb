@@ -90,7 +90,8 @@ class DeserializationWrapper {
 template <Trivial T>
 class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
    public:
-    // NOTE: @mli: We can't pass forward<const T>(t) to
+    // NOTE: @mli:
+    // We can't pass forward<const T>(t) to
     // SerializationWrapperBase, since forward is just static_cast<T&&>, as a
     // result, it only makes sense for forwarding a universal reference.
     // https://stackoverflow.com/questions/8526598/how-does-stdforward-work
@@ -161,8 +162,6 @@ class DeserializationWrapper<T> {
         if (!is) {
             log::errorAndThrow("Failed to deserialize trivial data!");
         }
-        //        log::debug("Successfully deserialized blob into Serializable
-        //        data: ", rtn);
         return rtn;
     }
 };
@@ -177,8 +176,6 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
 
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
-        //        log::debug("Serializing Pair data: ", t);
-        // Serialize .first and .second.
         /**
          * NOTE: @mli:
          * We need remove_const for T::first_type.
@@ -210,8 +207,6 @@ class DeserializationWrapper<T> {
         typename T::second_type second =
             DeserializationWrapper<typename T::second_type>()(is);
         T rtn{first, second};
-        //        log::debug("Successfully deserialized blob into Pair data: ",
-        //        rtn);
         return rtn;
     }
 };
@@ -226,9 +221,8 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
 
     void operator()(ostream& os) && {
         const T& t = this->getCRefT();
-        //        log::debug("Serializing SerializableContainer data: ", t);
         SerializationWrapper<size_type>(t.size())(os);
-        // Then, serialize each element in container.
+        // Serialize each element in container.
         for (auto it = t.begin(); it != t.end(); it++) {
             // NOTE: @mli: Can't use (*it) here because of most vexing parse.
             SerializationWrapper<container_value_type>{*it}(os);
@@ -239,12 +233,11 @@ class SerializationWrapper<T> : public impl::SerializationWrapperBase<T> {
     requires IndexBuilderInvocable<InvocableT, T> void operator()(
         ostream& os, InvocableT tryBuildIndex) && {
         const T& t = this->getCRefT();
-        //        log::debug("Serializing SerializableContainer data: ", t);
         SerializationWrapper<size_type>(t.size())(os);
         streamsize currBlockSize = 0;
         auto prevPos = os.tellp();
         auto currPos = prevPos;
-        // Then, serialize each element in container.
+        // Serialize each element in container.
         for (auto it = t.begin(); it != t.end(); it++) {
             bool isFirstOrLastEntry =
                 ((it == t.begin()) || (distance(it, t.end()) == 1));
@@ -278,8 +271,6 @@ class DeserializationWrapper<T> {
             rtn.insert(rtn.end(),
                        DeserializationWrapper<container_value_type>{}(is));
         }
-        //        log::debug("Successfully deserialized blob into
-        //        SerializableContainer data: ", rtn);
         return rtn;
     }
 
@@ -304,8 +295,6 @@ class DeserializationWrapper<T> {
                 currBlockSize = 0;
             }
         }
-        //        log::debug("Successfully deserialized blob into
-        //        SerializableContainer data: ", rtn);
         return rtn;
     }
 
@@ -318,8 +307,6 @@ class DeserializationWrapper<T> {
                        DeserializationWrapper<container_value_type>{}(is));
             currPos = is.tellg();
         }
-        //        log::debug("Successfully deserialized entries in pos range [",
-        //        start, ", ", end, "): ", rtn);
         return rtn;
     }
 

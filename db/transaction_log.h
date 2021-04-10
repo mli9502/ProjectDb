@@ -26,7 +26,8 @@ class TransactionLogWritter {
     void write(DbTransactionType type, const Ts&... args) & {
         SerializationWrapper<DbTransactionType>{type}(m_ofs);
         writeImpl(args...);
-        // NOTE: @mli: We need to flush here to make sure that records is
+        // NOTE: @mli:
+        // We need to flush here to make sure that records is
         // flushed to disk right away, instead of needing to wait for m_ofs to
         // be destructed.
         m_ofs.flush();

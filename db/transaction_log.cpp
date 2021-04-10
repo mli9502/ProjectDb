@@ -36,7 +36,8 @@ MemTable TransactionLogLoader::load(string_view transactionLogFileName) {
                         DeserializationWrapper<Table::key_type>{}(ifs);
                     const auto& value =
                         DeserializationWrapper<Table::mapped_type>{}(ifs);
-                    // NOTE: @mli: We can't just use DeserializationWrapper{}()
+                    // NOTE: @mli:
+                    // We can't just use DeserializationWrapper{}()
                     // as the two arguments, because the evaluation order of
                     // function arguments is not determined.
                     // https://en.cppreference.com/w/cpp/language/eval_order
