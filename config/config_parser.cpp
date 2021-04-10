@@ -14,14 +14,18 @@
 namespace projectdb {
 
 namespace {
-void setConfig(unsigned& config, const string& value) { config = stoul(value); }
+void setConfig(unsigned& config, const string& value) {
+    config = stoul(value);
+    log::debug("Converting ", value, " to ", config);
+}
 
 void setConfig(bool& config, const string& value) {
     auto intVal = stoi(value);
-    if (intVal != 0 || intVal != 1) {
+    if (intVal != 0 && intVal != 1) {
         log::errorAndThrow("Invalid bool value: ", value);
     }
     config = intVal;
+    log::debug("Converting ", value, " to ", config);
 }
 
 void setConfig(string& config, const string& value) { config = value; }
@@ -51,21 +55,23 @@ void ConfigParser::parse(const string& configFilePath) {
         log::errorAndThrow("Config file does not exist: ", configFilePath);
     }
 
-    regex r(R"([A-Z]_)+ (.+)");
+    regex r("^([A-Z_]+) (.+)");
 
     ifstream ifs(configFilePath);
     string line;
     while (getline(ifs, line)) {
+        log::debug("Getting line: [", line, "]");
         smatch match;
         if (!regex_search(line, match, r) || (match.size() != 3)) {
-            log::info("Found invalid line: [", line, "], will skip.");
+            log::debug("Found invalid line: [", line, "], will skip.");
             continue;
         }
         log::debug("Found config: [", match.str(0), "]");
         try {
             updateConfig(match.str(1), match.str(2));
+            log::info("Successfully applied config: ", line);
         } catch (const DbException& e) {
-            log::info("Config: [", line, "] is not valid. Will skip.");
+            log::debug("Config: [", line, "] is not valid. Will skip.");
         }
     }
 }
