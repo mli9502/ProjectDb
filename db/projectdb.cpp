@@ -4,6 +4,7 @@
 
 #include "projectdb/projectdb.h"
 
+#include "config_parser.h"
 #include "log.h"
 #include "memtable_queue.h"
 #include "sstable_index_queue.h"
@@ -16,7 +17,7 @@ namespace projectdb {
 
 class ProjectDbImpl {
    public:
-    ProjectDbImpl();
+    ProjectDbImpl(const string& configFilePath);
     ~ProjectDbImpl();
     optional<string> get(const string& key);
     void set(const string& key, const string& value);
@@ -37,7 +38,12 @@ class ProjectDbImpl {
     bool checkSSTableCompactionFuture();
 };
 
-ProjectDbImpl::ProjectDbImpl() { init(); }
+ProjectDbImpl::ProjectDbImpl(const string& configFilePath) {
+    if (!configFilePath.empty()) {
+        ConfigParser::parse(configFilePath);
+    }
+    init();
+}
 
 /**
  * In dtor, wait for all flushToDisk and ssTableCompaction jobs to be done
@@ -62,7 +68,7 @@ ProjectDbImpl::~ProjectDbImpl() {
     }
     // Finially removing all deprecated files.
     log::debug("Removing deprecated files...");
-    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
+    removeFilesWithExt(db_config::impl::DEPRECATED_FILE_EXT);
     log::debug("Done.");
 }
 
@@ -128,16 +134,18 @@ void ProjectDbImpl::remove(const string& key) {
 void ProjectDbImpl::init() {
     initDbPath();
 
-    log::debug("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
-    removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
-    log::debug("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
+    log::debug("Removing ", db_config::impl::DEPRECATED_FILE_EXT, " files...");
+    removeFilesWithExt(db_config::impl::DEPRECATED_FILE_EXT);
+    log::debug("Removing ", db_config::impl::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
                " files...");
-    removeFilesWithExt(db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT);
-    log::debug("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
-    removeFilesWithExt(db_config::MERGED_SSTABLE_FILE_EXT);
+    removeFilesWithExt(db_config::impl::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT);
+    log::debug("Removing ", db_config::impl::MERGED_SSTABLE_FILE_EXT,
+               " files...");
+    removeFilesWithExt(db_config::impl::MERGED_SSTABLE_FILE_EXT);
 
     log::debug("Reloading SSTables from disk...");
-    auto ssTableFiles = getFilesWithExtSorted(db_config::SSTABLE_FILE_EXT);
+    auto ssTableFiles =
+        getFilesWithExtSorted(db_config::impl::SSTABLE_FILE_EXT);
     for_each(ssTableFiles.cbegin(), ssTableFiles.cend(),
              [&](const auto& ssTableFileName) {
                  log::debug("Processing SSTable file: ", ssTableFileName);
@@ -155,7 +163,7 @@ void ProjectDbImpl::init() {
 
     log::debug("Reloading Transaction Logs from disk...");
     auto transactionLogFiles =
-        getFilesWithExtSorted(db_config::TRANSACTION_LOG_FILE_EXT);
+        getFilesWithExtSorted(db_config::impl::TRANSACTION_LOG_FILE_EXT);
     for (auto cit = transactionLogFiles.cbegin();
          cit != transactionLogFiles.end(); cit++) {
         bool isLastTransactionLog = (next(cit) == transactionLogFiles.end());
@@ -259,7 +267,8 @@ bool ProjectDbImpl::checkSSTableCompactionFuture() {
     return false;
 }
 
-ProjectDb::ProjectDb() : m_impl(make_unique<ProjectDbImpl>()) {}
+ProjectDb::ProjectDb(const string& configFilePath)
+    : m_impl(make_unique<ProjectDbImpl>(configFilePath)) {}
 ProjectDb::~ProjectDb() = default;
 
 optional<string> ProjectDb::get(const string& key) { return m_impl->get(key); }

@@ -14,11 +14,11 @@ namespace projectdb {
 namespace {
 
 string genFileName(unsigned counter, const string& fileExt) {
-    return db_config::DB_FILE_PREFIX + "_" + to_string(counter) + fileExt;
+    return db_config::impl::DB_FILE_PREFIX + "_" + to_string(counter) + fileExt;
 }
 
 string genDeprecatedFileName(string_view baseFileName) {
-    return string(baseFileName) + db_config::DEPRECATED_FILE_EXT;
+    return string(baseFileName) + db_config::impl::DEPRECATED_FILE_EXT;
 }
 
 }  // namespace
@@ -34,20 +34,21 @@ timestamp_unit_type getTimeSinceEpoch() {
 // cause a read-modify-write race condition for SSTABLE_FILE_COUNTER_BASE.
 string genSSTableFileName(unsigned ssTableFileCounter) {
     //    log::info("ssTableFileCounter: ", ssTableFileCounter);
-    return genFileName(ssTableFileCounter, db_config::SSTABLE_FILE_EXT);
+    return genFileName(ssTableFileCounter, db_config::impl::SSTABLE_FILE_EXT);
 }
 
 string genFlushInProgressSSTableFileName(string_view baseFileName) {
-    return string(baseFileName) + db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT;
+    return string(baseFileName) +
+           db_config::impl::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT;
 }
 
 string genMergedSSTableFileName(string_view baseFileName) {
-    return string(baseFileName) + db_config::MERGED_SSTABLE_FILE_EXT;
+    return string(baseFileName) + db_config::impl::MERGED_SSTABLE_FILE_EXT;
 }
 
 string genTransactionLogFileName() {
     return genFileName(db_config::impl::TRANSACTION_LOG_FILE_COUNTER_BASE++,
-                       db_config::TRANSACTION_LOG_FILE_EXT);
+                       db_config::impl::TRANSACTION_LOG_FILE_EXT);
 }
 
 void initDbPath() {
@@ -118,7 +119,7 @@ void waitUntilFileExist(string_view fileName) {
 }
 
 int getCounterFromFileName(const string& fileName) {
-    regex r(db_config::DB_FILE_PREFIX + "_(\\d+).*");
+    regex r(db_config::impl::DB_FILE_PREFIX + "_(\\d+).*");
     smatch match;
     if (!regex_search(fileName, match, r)) {
         log::errorAndThrow("Failed to extract counter from fileName: ",

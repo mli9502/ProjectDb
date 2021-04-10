@@ -16,9 +16,7 @@ class ProjectDbImpl;
 
 class ProjectDb {
    public:
-    // TODO: @mli: Add ctor that takes in a config file.
-    // TODO: @mli: Ctor should also init the db.
-    ProjectDb();
+    ProjectDb(const std::string& configFilePath = "");
     // https://www.fluentcpp.com/2017/09/22/make-pimpl-using-unique_ptr/
     ~ProjectDb();
 
