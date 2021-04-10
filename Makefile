@@ -39,7 +39,7 @@ build_and_run_docker:
 	docker run projectdb
 
 pdf_regen_all:
-	cd docs && @for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o ml4643_MengwenLi_$${file%.*}.pdf; done
+	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o $${file%.*}.pdf; done
 
 zip_files:
 	-rm *.zip
