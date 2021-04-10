@@ -24,17 +24,21 @@ This documentation provides a detailed description of directories, files, classe
   
 - `benchmark/*`: 
 
-  See [Measurements.pdf](__TODO: @mli: Add to this__) for detailed description of benchmarks.
+  See [Measurements](https://github.com/mli9502/ProjectDb/blob/main/docs/Measurements.pdf) for detailed description of benchmarks.
 
 - `config`:
   
+  - `config.template`: 
+    
+    A template for the config file that user can modify from. The values in the template are default value.
+
   - `db_config.h/cpp`: 
   
     This file contains the parameters user can configure before running `ProjectDb`. A detailed description of each parameter can be found in comments of `db_config.h`. 
 
     The performance of the database will be affected by some of the parameters.
 
-  - `db_config_parser.h/cpp`: 
+  - `config_parser.h/cpp`: 
 
     This file contains `ConfigParser` class that parses a config file that user provides into the parameters used by the database.
 
@@ -104,7 +108,7 @@ This documentation provides a detailed description of directories, files, classe
 
     This file contains `ProjectDb` class, which user will use to access the provided apis.
 
-    This is the only file that user needs to include when using `ProjectDb`. For more details, see [Tutorial]().
+    This is the only file that user needs to include when using `ProjectDb`. For more details, see [Tutorial](https://github.com/mli9502/ProjectDb/blob/main/docs/Tutorial.pdf).
 
 - `utils`
 

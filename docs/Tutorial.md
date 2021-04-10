@@ -45,6 +45,9 @@ ProjectDb -> This is cloned ProjectDb repo
 #include "projectdb/projectdb.h"
 
 int main() {
+    // To customize db configs, create a config file based on <root>/config/config.template,
+    // and initialize ProjectDb with:
+    // projectdb::ProjectDb db {"<path_to_config_file>"};
     projectdb::ProjectDb db;
     db.set("Hello", "World!");
     return 0;
@@ -72,4 +75,6 @@ To use this api, first create a `ProjectDb` object, with an optional parameter o
 
 Note that with the current `ProjectDb` implementation, these apis are not thread safe. `ProjectDb` object needs to be locked by user if the apis are called in a multi-threaded fashion. 
 
-Also, the current implementation doesn't provide multi-process support. And it is important to note that __only one `ProjectDb` should be created for one `DB_FILE_PATH`__, otherwise, there's a risk of data corruption.
+The current implementation doesn't provide multi-process support. And it is important to note that __only one `ProjectDb` should be created for one `DB_FILE_PATH`__, otherwise, there's a risk of data corruption.
+
+Also, although some configs can be updated between runs, it's better to keep config unchanged after the database is created.

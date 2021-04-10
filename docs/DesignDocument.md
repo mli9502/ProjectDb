@@ -52,7 +52,7 @@ A brief description of `LSM-Tree` algorithm can be found in this [wiki](https://
 
 - __Format of data on disk__:
   
-  Everything is encoded into a list of `char` before flushing to disk. A more detailed description of the serialization format can be found in [Documentation](__TODO: @mli: Add link to documentation.__)
+  Everything is encoded into a list of `char` before flushing to disk. A more detailed description of the serialization format can be found in [Documentation](https://github.com/mli9502/ProjectDb/blob/main/docs/Document.pdf)
 
   Because we don't expect a file written by `ProjectDb` on one machine to be opened on another machine, we don't have to worry about things like different machines having different size for `int`, endian differences between machines, etc.
 

@@ -40,7 +40,7 @@ ProjectDb ................> This is cloned ProjectDb repo
         libprojectdb.a ...> This is generated after running "make init_build && make projectdb"
 ```
 
-`main.cpp`, which is the application, is as following:
+`main.cpp`, which represents the application, is as following:
 
 ```c++
 // main.cpp
@@ -48,6 +48,9 @@ ProjectDb ................> This is cloned ProjectDb repo
 #include "projectdb/projectdb.h"
 
 int main() {
+    // A config file template can be found in ./config/config.template
+    // To use a customized config, create object with:
+    // ProjectDb::ProjectDb db {"<config_file_path>"};
     projectdb::ProjectDb db;
     db.set("Hello", "World!");
     return 0;
