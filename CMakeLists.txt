@@ -24,5 +24,3 @@ add_subdirectory(benchmark)
 # The projectdb library.
 # https://stackoverflow.com/questions/46944852/cmake-generate-static-library-based-on-other-static-libraries-and-packed-them-to
 add_library(projectdb STATIC $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:config> $<TARGET_OBJECTS:db>)
-
-
