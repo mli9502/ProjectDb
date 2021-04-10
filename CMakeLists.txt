@@ -25,6 +25,7 @@ add_subdirectory(benchmark)
 # https://stackoverflow.com/questions/46944852/cmake-generate-static-library-based-on-other-static-libraries-and-packed-them-to
 add_library(projectdb STATIC $<TARGET_OBJECTS:utils> $<TARGET_OBJECTS:config> $<TARGET_OBJECTS:db>)
 
-add_executable(main main.cpp)
-target_include_directories(main PRIVATE include)
-target_link_libraries(main PUBLIC projectdb pthread)
+# Uncomment the following to add a main.cpp for testing.
+# add_executable(main main.cpp)
+# target_include_directories(main PRIVATE include)
+# target_link_libraries(main PUBLIC projectdb pthread)
