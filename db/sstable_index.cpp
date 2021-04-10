@@ -25,7 +25,8 @@ void SSTableIndex::addIndex(Table::key_type key, ios::pos_type pos) {
 void SSTableIndex::setEofPos(ios::pos_type eofPos) { m_eofPos = eofPos; }
 
 optional<Table::mapped_type> SSTableIndex::seek(const Table::key_type& key) {
-    // NOTE: @mli: We can't initialize m_ifs in ctor, because SSTableIndex is
+    // NOTE: @mli:
+    // We can't initialize m_ifs in ctor, because SSTableIndex is
     // not the one that writes the data to file. It seems that if we open an
     // ifstream, then some other code opens the same file as ofstream and write
     // stuff, our already-opened ifstream will become invalid. As a result, we
@@ -71,7 +72,7 @@ optional<pair<ios::pos_type, ios::pos_type>> SSTableIndex::getPotentialBlockPos(
     for (auto cit = m_index.cbegin(); cit != m_index.cend(); cit++) {
         if (key == cit->first) {
             ios::pos_type endPos;
-            // This handles the case where the key we seek IS the last key in
+            // This handles the case where the key we seek is the last key in
             // the SSTable.
             if (cit == prev(m_index.cend())) {
                 endPos = m_eofPos;

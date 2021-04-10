@@ -42,12 +42,12 @@ class Key {
      * NOTE: @mli:
      * I want to make sure that these two methods can't be called directly.
      * And serialization/deserialization must be done through
-     * SerializationWrapper due to the additional error checking. However, I
-     * didn't find a good way to handle this. Initially, I want to make
-     * serializeImpl and deserializeImpl private, and make SerializationWrapper
-     * a friend class. But, the use of Serializable concept requires method to
-     * be public. So, for now, just make the name <>Impl, hopefully indicate
-     * that these should not be called directly.
+     * SerializationWrapper/DeserializationWrapper due to the additional error
+     * checking. However, I didn't find a good way to handle this. Initially, I
+     * want to make serializeImpl and deserializeImpl private, and make
+     * SerializationWrapper a friend class. But, the use of Serializable concept
+     * requires method to be public. So, for now, just make the name <>Impl,
+     * hopefully indicate that these should not be called directly.
      */
     void serializeImpl(ostream& os) const&;
     Key deserializeImpl(istream& is) &&;

@@ -15,7 +15,7 @@ Value::Value(value_type value)
     : m_type(Type::STRING_VALUE), m_value(move(value)) {}
 
 /**
- * Check if the value is empty.
+ * Check if the value is TOMBSTONE.
  */
 bool Value::isTombstoneValue() const { return m_type == Type::TOMBSTONE_VALUE; }
 

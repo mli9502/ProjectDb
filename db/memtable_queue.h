@@ -44,7 +44,7 @@ class MemTableQueue {
      * indicates that it's not ready, we should NOT do the check for the other
      * futures, even if it's possible that the other futures have finished. This
      * is because the MemTable and SSTableIndex queue has a strict order. We
-     * have to ALWAYS remove from the begining and add in the end.
+     * have to ALWAYS remove from the beginning and add in the end.
      */
     void pop();
 

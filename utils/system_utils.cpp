@@ -28,10 +28,11 @@ timestamp_unit_type getTimeSinceEpoch() {
         chrono::system_clock::now().time_since_epoch());
 }
 
-// NOTE: @mli: We can't directly use (++
-// db_config::impl::SSTABLE_FILE_COUNTER_BASE) in here, because it's possible
-// that there are multiple tryFlushToDisk job launched together, which will
-// cause a read-modify-write race condition for SSTABLE_FILE_COUNTER_BASE.
+// NOTE: @mli:
+// We can't directly use (++ db_config::impl::SSTABLE_FILE_COUNTER_BASE) in
+// here, because it's possible that there are multiple tryFlushToDisk job
+// launched together, which will cause a read-modify-write race condition for
+// SSTABLE_FILE_COUNTER_BASE.
 string genSSTableFileName(unsigned ssTableFileCounter) {
     //    log::info("ssTableFileCounter: ", ssTableFileCounter);
     return genFileName(ssTableFileCounter, db_config::impl::SSTABLE_FILE_EXT);
@@ -83,9 +84,6 @@ void markFileAsDeprecated(string_view baseFileName) {
 /**
  * Removes the last extension of the file, and rename the file with this new
  * name.
- * @param fileName
- * @return the file name with last ext removed. (which is what the original file
- * being renamed to).
  */
 string removeExtAndRename(string_view fileName) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
@@ -104,7 +102,6 @@ string removeExtAndRename(string_view fileName) {
 void waitUntilFileExist(string_view fileName) {
     filesystem::path filePath(db_config::DB_FILE_PATH);
     const auto& fullFilePath = filePath / fileName;
-    //    log::info("Waiting for: ", fullFilePath);
     while (true) {
         try {
             if (filesystem::exists(fullFilePath)) {

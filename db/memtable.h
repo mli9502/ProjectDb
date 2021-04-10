@@ -34,9 +34,9 @@ class MemTable {
      * NOTE: @mli:
      * delete(key) will ALWAYS SET a TOMBSTONE value instead of actually
      * removing anything from the map. This is because a key can be presented in
-     * multiple sstable, and during compression, we need TOMBSTONE to be set
+     * multiple sstable, and during compaction, we need TOMBSTONE to be set
      * correctly for each of these keys if delete is called during the time
-     * period corresponding to the sstable. This makes sure that compression of
+     * period corresponding to the sstable. This makes sure that compaction of
      * sstables works correctly.
      */
     void remove(const key_type& key);

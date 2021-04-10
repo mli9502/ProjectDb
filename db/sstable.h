@@ -16,11 +16,6 @@ using namespace std;
 
 namespace projectdb {
 
-/**
- * TODO: @mli: Create SSTableMergePolicy to merge SSTables. This should return a
- * new SSTable after merge.
- */
-
 class SSTableMetaData {
    public:
     SSTableMetaData();

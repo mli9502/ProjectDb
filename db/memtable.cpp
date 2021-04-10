@@ -56,9 +56,14 @@ bool MemTable::needsFlushToDisk() const {
         currSizeInBytes +=
             k.getApproximateSizeInBytes() + v.getApproximateSizeInBytes();
     }
-    //    log::debug("Current MemTable size is approximate ", currSizeInBytes,
-    //               " bytes.");
-    return currSizeInBytes >= db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES;
+    bool rtn =
+        (currSizeInBytes >= db_config::MEMTABLE_APPROXIMATE_MAX_SIZE_IN_BYTES);
+    if (rtn) {
+        log::debug("Current MemTable size is approximate ", currSizeInBytes,
+                   " bytes. Need to flush to disk.");
+    }
+
+    return rtn;
 }
 
 shared_ptr<Table> MemTable::getTable() const { return m_table; }

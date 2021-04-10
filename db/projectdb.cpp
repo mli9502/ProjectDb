@@ -51,7 +51,8 @@ ProjectDbImpl::ProjectDbImpl(const string& configFilePath) {
  */
 ProjectDbImpl::~ProjectDbImpl() {
     log::debug("Finishing up in-progress jobs before closing ProjectDb...");
-    // NOTE: @mli: checkFlushToDiskFutures is not called in here because we just
+    // NOTE: @mli:
+    // checkFlushToDiskFutures is not called in here because we just
     // want to finish all flushToDisk, and don't want to start any more
     // compactions.
     log::debug("Waiting for flushToDisk jobs to finish...");
@@ -113,9 +114,6 @@ void ProjectDbImpl::remove(const string& key) {
     }
 }
 
-// TODO: @mli: We might need to first write SSTable to SSTable.in_progress, and
-// update its file name to remove the suffix when it's flushed. By doing this,
-// we can know during initialization which SSTable should we pick up.
 /**
  * Performs the following operations to initialize the database:
  * 1. Remove all files with .deprecated, .merged and .ip suffix, since they are
@@ -224,7 +222,8 @@ void ProjectDbImpl::checkFlushToDiskFutures() {
         m_memTableQueue.pop();
         it = m_flushToDiskFutures.erase(it);
     }
-    // NOTE: @mli: Compaction is launched only when all the updates to
+    // NOTE: @mli:
+    // Compaction is launched only when all the updates to
     // m_ssTableIndexQueue are done. Since both this method, and
     // tryLaunchCompaction will modify m_ssTableIndexQueue, we have to
     // guarantee that the queue is only updated by one of these at any given
@@ -247,6 +246,7 @@ void ProjectDbImpl::checkFlushToDiskFutures() {
 }
 
 /**
+ * NOTE: @mli:
  * Only one compaction can be done at a single time!
  * This is because new compaction depends on the result of previous
  * compaction, since the new SSTables might be compacted into the last one

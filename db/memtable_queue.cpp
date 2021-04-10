@@ -15,14 +15,11 @@
 using namespace std;
 
 namespace projectdb {
-// NOTE: @mli: We can't just return optional<string> because it's possible that
-// we get a TOMBSTONE here, in this case, we should just finish instead of
-// continue searching in SSTableIndex.
-/**
- * Search through the queue for a given key.
- * @param key
- * @return
- */
+// NOTE: @mli:
+// We have to return optional<Value> instead of optional<string> (aka
+// optional<Value::value_type>) because it's possible that we get a TOMBSTONE
+// here, in this case, we should just finish instead of continue searching in
+// SSTableIndex.
 optional<MemTable::mapped_type> MemTableQueue::get(const string& key) const {
     if (m_queue.empty()) {
         return {};
@@ -70,12 +67,13 @@ optional<future<SSTableIndex>> MemTableQueue::pushFromTransactionLog(
     m_queue.emplace_back(TransactionLogLoader::load(transactionLogFileName),
                          TransactionLogWritter(transactionLogFileName));
     if (!isLastTransactionLog) {
-        // NOTE: @mli: In here, we don't call tryLaunchFlushToDisk,
-        // because if flushToDisk is true, we are sure that we need the flush,
-        // so we don't need to check needsFlushToDisk.
-        // Also, since when it's not the last loaded MemTable, we are just
-        // cleaning up our previous runs, so we don't want to add a new MemTable
-        // entry at the end of the queue.
+        // NOTE: @mli:
+        // In here, we don't call tryLaunchFlushToDisk,
+        // because if this is not the last transaction log (which we might still
+        // be able to write to), we are sure that we need the flush, so we don't
+        // need to check needsFlushToDisk. Also, since when it's not the last
+        // loaded MemTable, we are just cleaning up our previous runs, so we
+        // don't want to add a new MemTable entry at the end of the queue.
         return launchFlushToDisk(m_queue.back().first);
     }
     return {};
@@ -107,7 +105,8 @@ future<SSTableIndex> MemTableQueue::launchFlushToDisk(
     auto currTable = memTable.getTable();
     unsigned currSSTableFileCounter =
         ++db_config::impl::SSTABLE_FILE_COUNTER_BASE;
-    // NOTE: @mli: In here we CAN'T capture by reference, because
+    // NOTE: @mli:
+    // In here we CAN'T capture by reference, because
     // currSSTableFileCounter will be destructed as soon as thread launches,
     // resulting in a garbage value.
     return async(launch::async, [currTable, currSSTableFileCounter]() {
