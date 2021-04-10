@@ -1,9 +1,9 @@
-BUILD := debug
+BUILD := release
 CMAKE_DIR := cmake-build-${BUILD}
 
 # For release build, use command "make BUILD=release <target>".
 
-.PHONY: init_build main run_main tests run_tests build_and_run_docker pdf_regen_all zip_files clean
+.PHONY: init_build main run_main benchmark run_benchmark tests run_tests build_and_run_docker pdf_regen_all zip_files clean
 
 init_build:
 	-@rm -rf $(CMAKE_DIR)
@@ -17,8 +17,15 @@ main:
 
 run_main:
 	$(MAKE) -s main
-	# -@rm -rf $(CMAKE_DIR)/projectdb
+	-@rm -rf $(CMAKE_DIR)/projectdb
 	cd $(CMAKE_DIR) && ./main
+
+benchmark:
+	cd $(CMAKE_DIR) && cmake --build . --target benchmark
+
+run_benchmark:
+	$(MAKE) -s benchmark
+	cd $(CMAKE_DIR)/benchmark && ./benchmark
 
 tests:
 	cd $(CMAKE_DIR) && cmake --build . --target tests
@@ -28,8 +35,8 @@ run_tests:
 	cd $(CMAKE_DIR)/tests && ./tests
 
 build_and_run_docker:
-	docker build -t cpp_project .
-	docker run cpp_project
+	docker build -t projectdb .
+	docker run projectdb
 
 pdf_regen_all:
 	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o ml4643_MengwenLi_$${file%.*}.pdf; done

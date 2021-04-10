@@ -56,10 +56,10 @@ class SSTable {
     explicit SSTable(shared_ptr<Table> table);
 
     SSTableMetaData& metaData();
-    const SSTableMetaData& metaData() const;
+    [[nodiscard]] const SSTableMetaData& metaData() const;
 
     Table& table();
-    const Table& table() const;
+    [[nodiscard]] const Table& table() const;
 
    private:
     SSTableMetaData m_metaData;

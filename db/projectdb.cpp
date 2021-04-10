@@ -44,11 +44,11 @@ ProjectDbImpl::ProjectDbImpl() { init(); }
  * before finish.
  */
 ProjectDbImpl::~ProjectDbImpl() {
-    log::info("Finishing up in-progress jobs before closing ProjectDb...");
+    log::debug("Finishing up in-progress jobs before closing ProjectDb...");
     // NOTE: @mli: checkFlushToDiskFutures is not called in here because we just
     // want to finish all flushToDisk, and don't want to start any more
     // compactions.
-    log::info("Waiting for flushToDisk jobs to finish...");
+    log::debug("Waiting for flushToDisk jobs to finish...");
     for (auto& ft : m_flushToDiskFutures) {
         auto ssTableIndex = ft.get();
         log::debug("Got SSTableIndex for SSTable: ",
@@ -57,13 +57,13 @@ ProjectDbImpl::~ProjectDbImpl() {
         // Remove the corresponding MemTable and TransactionLog.
         m_memTableQueue.pop();
     }
-    log::info("Waiting for SSTable compaction job to finish...");
+    log::debug("Waiting for SSTable compaction job to finish...");
     while (checkSSTableCompactionFuture()) {
     }
     // Finially removing all deprecated files.
-    log::info("Removing deprecated files...");
+    log::debug("Removing deprecated files...");
     removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
-    log::info("Done.");
+    log::debug("Done.");
 }
 
 optional<string> ProjectDbImpl::get(const string& key) {
@@ -128,15 +128,15 @@ void ProjectDbImpl::remove(const string& key) {
 void ProjectDbImpl::init() {
     initDbPath();
 
-    log::info("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
+    log::debug("Removing ", db_config::DEPRECATED_FILE_EXT, " files...");
     removeFilesWithExt(db_config::DEPRECATED_FILE_EXT);
-    log::info("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
-              " files...");
+    log::debug("Removing ", db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT,
+               " files...");
     removeFilesWithExt(db_config::SSTABLE_FILE_FLUSH_IN_PROGRESS_EXT);
-    log::info("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
+    log::debug("Removing ", db_config::MERGED_SSTABLE_FILE_EXT, " files...");
     removeFilesWithExt(db_config::MERGED_SSTABLE_FILE_EXT);
 
-    log::info("Reloading SSTables from disk...");
+    log::debug("Reloading SSTables from disk...");
     auto ssTableFiles = getFilesWithExtSorted(db_config::SSTABLE_FILE_EXT);
     for_each(ssTableFiles.cbegin(), ssTableFiles.cend(),
              [&](const auto& ssTableFileName) {
@@ -153,7 +153,7 @@ void ProjectDbImpl::init() {
                    db_config::impl::SSTABLE_FILE_COUNTER_BASE);
     }
 
-    log::info("Reloading Transaction Logs from disk...");
+    log::debug("Reloading Transaction Logs from disk...");
     auto transactionLogFiles =
         getFilesWithExtSorted(db_config::TRANSACTION_LOG_FILE_EXT);
     for (auto cit = transactionLogFiles.cbegin();
@@ -226,6 +226,10 @@ void ProjectDbImpl::checkFlushToDiskFutures() {
     // However, we can't call checkFlushToDiskFutures while compaction job
     // is running, since checkFlushToDiskFutures will update the queue.
     log::debug("Try starting SSTable compaction job.");
+    // TODO: @mli: We might be able to optimize this to take in a list of
+    // filenames, so it won't need to access m_ssTableIndexQueue directly. With
+    // this change, we could do checkFlushToDiskFutures while compaction is
+    // running.
     auto&& ft = m_ssTableIndexQueue.tryLaunchCompaction();
     if (ft.has_value()) {
         log::debug("Starting SSTable compaction job.");
