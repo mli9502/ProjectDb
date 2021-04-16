@@ -1,5 +1,6 @@
+CMAKE_DIR_PREFIX = cmake-build-
 BUILD := release
-CMAKE_DIR := cmake-build-${BUILD}
+CMAKE_DIR := ${CMAKE_DIR_PREFIX}${BUILD}
 
 # For release build, use command "make BUILD=release <target>".
 
@@ -27,12 +28,19 @@ run_benchmark:
 	$(MAKE) -s benchmark
 	cd $(CMAKE_DIR)/benchmark && ./benchmark
 
+# Force debug build for test.
 tests:
 	cd $(CMAKE_DIR) && cmake --build . --target tests
 
 run_tests:
 	$(MAKE) -s tests
 	cd $(CMAKE_DIR)/tests && ./tests
+
+coverage:
+	cd ${CMAKE_DIR_PREFIX}coverage && cmake --build . --target tests
+	cd ${CMAKE_DIR_PREFIX}coverage/tests && ./tests
+	# exp for exclude: https://github.com/gcovr/gcovr/issues/151
+	gcovr cmake-build-coverage/ -r . --exclude-directories '.*tests.*' --html -o docs/coverage.html
 
 build_and_run_docker:
 	docker build -t projectdb .
