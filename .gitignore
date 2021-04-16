@@ -5,6 +5,7 @@ cmake-*/
 *.rej
 *.pdf
 *.diff
+*.xml
 html/
 debug.log
 benchmark/*.csv
