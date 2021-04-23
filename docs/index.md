@@ -110,20 +110,21 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 
 ## Features:
 
-- [ ] Support range query for read.
-- [ ] Add bloom filter.
-- [ ] Work on making this distributed.
+1. Support range query for read.
+2. Add bloom filter.
+3. Work on making this distributed.
+4. ...
 
 ## Tests & Benchmark:
 
-- Add more unit tests.
-- Add more tests for crash recovery. (Need to investigate the concept of commit and rollback.)
-- Rewrite benchmark code and compare with `leveldb`.
+1. Add more unit tests.
+2. Add more tests for crash recovery. (Need to investigate the concept of commit and rollback.)
+3. Rewrite benchmark code and compare with `leveldb`.
+4. ...
 
-
-- Add badge for code coverage.
-- Add more unit tests.
-- Add support for bulk read.
+## Misc:
+1. Add badge for code coverage.
+2. ...
 
 ---
 
