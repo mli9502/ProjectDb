@@ -102,7 +102,29 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 - LevelDb: The database used at a single node of BigTable: https://github.com/google/leveldb
 - Google big table: http://static.googleusercontent.com/media/research.google.com/en//archive/bigtable-osdi06.pdf
 - Designing Data-Intensive Applications: p76 - p79
-- https://thispointer.com//c11-multithreading-part-9-stdasync-tutorial-example/
+- Readings on `future` and `promise`: https://thispointer.com//c11-multithreading-part-9-stdasync-tutorial-example/
+
+---
+
+# Roadmaps
+
+## Features:
+
+- [ ] Support range query for read.
+- [ ] Add bloom filter.
+- [ ] Work on making this distributed.
+
+## Tests & Benchmark:
+
+- [ ] Add more unit tests.
+- [ ] Add more tests for crash recovery. (Need to investigate the concept of commit and rollback.)
+- [ ] Rewrite benchmark code and compare with `leveldb`.
+
+
+- [ ] Add badge for code coverage.
+- [ ] Add more unit tests.
+- [ ] Add support for bulk read.
+- [ ] 
 
 ---
 
