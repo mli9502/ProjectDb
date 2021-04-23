@@ -116,14 +116,14 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 
 ## Tests & Benchmark:
 
-- [ ] Add more unit tests.
-- [ ] Add more tests for crash recovery. (Need to investigate the concept of commit and rollback.)
-- [ ] Rewrite benchmark code and compare with `leveldb`.
+- Add more unit tests.
+- Add more tests for crash recovery. (Need to investigate the concept of commit and rollback.)
+- Rewrite benchmark code and compare with `leveldb`.
 
 
-- [ ] Add badge for code coverage.
-- [ ] Add more unit tests.
-- [ ] Add support for bulk read.
+- Add badge for code coverage.
+- Add more unit tests.
+- Add support for bulk read.
 
 ---
 
