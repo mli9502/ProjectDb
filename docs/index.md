@@ -124,10 +124,6 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 - [ ] Add badge for code coverage.
 - [ ] Add more unit tests.
 - [ ] Add support for bulk read.
-<<<<<<< HEAD
-=======
-- [ ] 
->>>>>>> main
 
 ---
 
