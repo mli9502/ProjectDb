@@ -45,13 +45,13 @@ coverage:
 # Target used by CI.
 docker_test:
 	docker build -t projectdb_img .
-	docker run -it --rm -v ${PWD}:/projectdb projectdb_img test
+	docker run --rm -v ${PWD}:/projectdb projectdb_img test
 
 # Target used by CI.
 # Runs coverage and copy the generated report from docker to docs/.
 docker_coverage:
 	docker build -t projectdb_img .
-	docker run -it --rm -v ${PWD}:/projectdb projectdb_img coverage
+	docker run --rm -v ${PWD}:/projectdb projectdb_img coverage
 
 pdf_regen_all:
 	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o $${file%.*}.pdf; done
