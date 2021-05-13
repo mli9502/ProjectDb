@@ -95,6 +95,12 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 
 ---
 
+# Coverage:
+
+[coverage](coverage.html)
+
+---
+
 # References
 
 - pre-commit hook for clang-format: https://github.com/barisione/clang-format-hooks/
