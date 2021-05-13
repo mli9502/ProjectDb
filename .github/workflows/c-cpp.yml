@@ -10,20 +10,25 @@ jobs:
   format:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: clang-format Check
-      uses: jidicula/clang-format-action@v3.2.0
-      with:
-        # The version of clang-format that you want to use.
-        clang-format-version: 11
-        # The path to the directory you want to check for correct C/C++formatting. Default is the full repository.
-        check-path: .
-        # The fallback style for clang-format if no .clang-format file exists in your repository.
-        fallback-style: Google
+      - uses: actions/checkout@v2
+      - name: clang-format Check
+        uses: jidicula/clang-format-action@v3.2.0
+        with:
+          # The version of clang-format that you want to use.
+          clang-format-version: 11
+          # The path to the directory you want to check for correct C/C++formatting. Default is the full repository.
+          check-path: .
+          # The fallback style for clang-format if no .clang-format file exists in your repository.
+          fallback-style: Google
   build:
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: make build_and_run_docker
-      run: make build_and_run_docker
+      - uses: actions/checkout@v2
+      - name: test
+        run: make docker_test
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: coverage
+        run: make docker_coverage
