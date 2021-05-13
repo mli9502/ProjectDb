@@ -4,7 +4,7 @@ CMAKE_DIR := ${CMAKE_DIR_PREFIX}${BUILD}
 
 # For release build, use command "make BUILD=release <target>".
 
-.PHONY: init_build main run_main benchmark run_benchmark tests run_tests build_and_run_docker pdf_regen_all zip_files clean
+.PHONY: init_build main run_main benchmark run_benchmark tests run_tests docker_test docker_coverage pdf_regen_all zip_files clean
 
 init_build:
 	-@rm -rf $(CMAKE_DIR)
@@ -42,9 +42,16 @@ coverage:
 	# exp for exclude: https://github.com/gcovr/gcovr/issues/151
 	gcovr cmake-build-coverage/ -r . --exclude-directories '.*tests.*' --html -o docs/coverage.html
 
-build_and_run_docker:
-	docker build -t projectdb .
-	docker run projectdb
+# Target used by CI.
+docker_test:
+	docker build -t projectdb_img .
+	docker run --rm -v ${PWD}:/projectdb projectdb_img test
+
+# Target used by CI.
+# Runs coverage and copy the generated report from docker to docs/.
+docker_coverage:
+	docker build -t projectdb_img .
+	docker run --rm -v ${PWD}:/projectdb projectdb_img coverage
 
 pdf_regen_all:
 	@for file in $(shell ls *.md); do pandoc $${file} -V geometry:margin=.5in --pdf-engine=xelatex -o $${file%.*}.pdf; done

@@ -28,11 +28,21 @@ RUN cd googletest-release-1.10.0 && \
     cp lib/libg* /usr/local/lib
 RUN rm -rf ./googletest-release-1.10.0
 
-COPY . ./test_projectdb
+# Install gcovr.
+RUN apt install -y --no-install-recommends python3.8 python3-pip
+RUN pip3 install gcovr
 
-# Init build directory.
-RUN cd test_projectdb && make init_build
+COPY . ./cd_projectdb
+
+# https://stackoverflow.com/questions/20632258/change-directory-command-in-docker
+WORKDIR "cd_projectdb"
+
+ENTRYPOINT ["/bin/bash", "./scripts/docker_cmds.sh"]
+
+#RUN cd test_projectdb && make init_build
+
+#ENTRYPOINT ["cd test_projectdb"]
 
 # Run test by default when launch the image.
-CMD cd test_projectdb && make run_tests
+#CMD cd test_projectdb && make run_tests
 
