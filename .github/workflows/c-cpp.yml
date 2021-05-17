@@ -32,11 +32,6 @@ jobs:
       - uses: actions/checkout@v2
       - name: coverage
         run: make docker_coverage
-      - name: Add & Commit
-        uses: EndBug/add-and-commit@v7.2.1
-        with:
-          add: './docs/coverage.html'
-          message: 'Update test coverage report.'
       # https://github.com/codecov/codecov-action
       - name: CodeCov
         uses: codecov/codecov-action@v1
@@ -45,4 +40,8 @@ jobs:
           files: ./docs/coverage.xml
           flags: unittests
           name: codecov-umbrella
-
+      - name: Add & Commit
+        uses: EndBug/add-and-commit@v7.2.1
+        with:
+          add: './docs/coverage.*'
+          message: 'Update test coverage report.'
