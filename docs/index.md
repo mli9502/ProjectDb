@@ -110,6 +110,10 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 - Designing Data-Intensive Applications: p76 - p79
 - Readings on `future` and `promise`: https://thispointer.com//c11-multithreading-part-9-stdasync-tutorial-example/
 
+- Code coverage setup: https://github.com/codecov/codecov-action
+- Codecov: 
+  - Supported languate: https://docs.codecov.io/docs/supported-languages
+  - Supported xml format: https://docs.codecov.io/docs/supported-report-formats
 ---
 
 # Roadmaps

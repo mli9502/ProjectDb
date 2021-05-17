@@ -37,3 +37,20 @@ jobs:
         with:
           add: './docs/coverage.html'
           message: 'Update test coverage report.'
+      # https://github.com/codecov/codecov-action
+      - name: CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./docs/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  coverage-badge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: codecov/codecov-action@v1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+
