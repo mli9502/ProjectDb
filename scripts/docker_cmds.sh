@@ -16,6 +16,7 @@ case $1 in
     # https://stackoverflow.com/questions/57846627/copy-a-file-from-docker-container-to-host
     # docker run -it --rm -v ${PWD}:/projectdb projectdb coverage
     cp ./docs/coverage.html ../projectdb/docs/coverage.html
+    cp ./docs/coverage.xml ../projectdb/docs/coverage.xml
     ;;
   *)
     printf "Found unknown option! Valid options are: [test, coverage]\n"

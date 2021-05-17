@@ -41,6 +41,7 @@ coverage:
 	cd ${CMAKE_DIR_PREFIX}coverage/tests && ./tests
 	# exp for exclude: https://github.com/gcovr/gcovr/issues/151
 	gcovr cmake-build-coverage/ -r . --exclude-directories '.*tests.*' --html -o docs/coverage.html
+	gcovr cmake-build-coverage/ -r . --exclude-directories '.*tests.*' --xml-pretty -o docs/coverage.xml
 
 # Target used by CI.
 docker_test:
