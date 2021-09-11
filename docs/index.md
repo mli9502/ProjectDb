@@ -4,6 +4,13 @@ A key-value storage engine library
 
 ---
 
+# Contributing to the repo
+
+- Install `clang-format-11`.
+- Run `./init.sh` to install pre-commit hook for formatting the code.
+
+---
+
 # Getting Started:
 
 ## Requirements
@@ -135,12 +142,4 @@ All the documents can be found in [docs/](https://github.com/mli9502/ProjectDb/t
 ## Misc:
 1. Add badge for code coverage.
 2. ...
-
----
-
-# Contributing to the repo
-
-- Install `clang-format-11`.
-- Run `./init.sh` to install pre-commit hook for formatting the code.
-
 
